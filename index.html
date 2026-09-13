@@ -726,6 +726,17 @@ function sortByUserChoice(list){
     sorted.sort((a,b)=> (Number(b.play && b.play.rating) || 0) - (Number(a.play && a.play.rating) || 0));
   } else if(sort === 'rating-asc'){
     sorted.sort((a,b)=> (Number(a.play && a.play.rating) || 0) - (Number(b.play && b.play.rating) || 0));
+  } else if(sort === 'start-desc' || sort === 'start-asc'){
+    // Le date sono in formato ISO (YYYY-MM-DD) quindi si confrontano come stringhe;
+    // i giochi senza data di inizio finiscono sempre in coda, a prescindere dal verso.
+    sorted.sort((a,b)=>{
+      const sa = (a.play && a.play.startDate) || '';
+      const sb = (b.play && b.play.startDate) || '';
+      if(!sa && !sb) return 0;
+      if(!sa) return 1;
+      if(!sb) return -1;
+      return sort === 'start-desc' ? sb.localeCompare(sa) : sa.localeCompare(sb);
+    });
   }
   return sorted;
 }
@@ -780,6 +791,26 @@ function renderFilterOptions(){
   const curPlat = state.filters.platform, curGen = state.filters.genre;
   platSel.innerHTML = '<option value="">Tutte le piattaforme</option>' + allPlatformsInLibrary().map(p=>`<option value="${esc(p)}" ${p===curPlat?'selected':''}>${esc(p)}</option>`).join('');
   genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
+
+  // Il menu di ordinamento cambia in base alla tab attiva: solo in "Finiti"
+  // ha senso ordinare per data di inizio partita.
+  const sortSel = document.getElementById('filter-sort');
+  const baseSortOptions = [
+    { value:'name-asc', label:'Nome (A - Z)' },
+    { value:'name-desc', label:'Nome (Z - A)' },
+    { value:'rating-desc', label:'Voto (Più alto)' },
+    { value:'rating-asc', label:'Voto (Più basso)' }
+  ];
+  const finitoSortOptions = [
+    { value:'start-desc', label:'Data inizio (più recente)' },
+    { value:'start-asc', label:'Data inizio (meno recente)' }
+  ];
+  const sortOptions = state.activeTab === 'finito' ? baseSortOptions.concat(finitoSortOptions) : baseSortOptions;
+  const validValues = sortOptions.map(o=>o.value);
+  if(!validValues.includes(state.filters.sort)){
+    state.filters.sort = 'name-asc';
+  }
+  sortSel.innerHTML = sortOptions.map(o=>`<option value="${o.value}" ${o.value===state.filters.sort?'selected':''}>${o.label}</option>`).join('');
 }
   
 
