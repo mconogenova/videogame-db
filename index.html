@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Videogame DB - The Ultimate Project</title>
+<style>
+  :root{
+    --paper: #EAE2CA;
+    --paper-dim: #DED2AC;
+    --paper-hi: #F5EFDC;
+    --ink: #2B2420;
+    --ink-soft: #5B5245;
+    --wood: #4E3C29;
+    --wood-dark: #362A1C;
+    --stamp: #9C3B2E;
+    --stamp-dim: #C97C6C;
+    --brass: #93732E;
+    --brass-dim: #C9AE72;
+    --sage: #52654A;
+    --sage-dim: #92A487;
+    --slate: #3E5266;
+    --slate-dim: #86A0B4;
+    --line: rgba(43,36,32,0.18);
+    --shadow-flat: 4px 4px 0 rgba(43,36,32,0.18);
+    --shadow-flat-sm: 3px 3px 0 rgba(43,36,32,0.16);
+    --radius: 3px;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "Courier New", Courier, monospace;
+  }
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--brass-dim); color: var(--ink); }
+
+  a{ color: inherit; }
+
+  /* ---------- App shell ---------- */
+  #app{ display:flex; flex-direction:column; min-height:100vh; }
+  #app.hidden{ display:none; }
+  .field input[type="email"], .field input[type="password"]{
+    width:100%; background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 9px 10px; font-family: var(--sans); font-size: 14px; color: var(--ink);
+  }
+
+  header.top{
+    background: var(--wood);
+    color: var(--paper-hi);
+    padding: 22px 28px 18px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 6px solid var(--wood-dark);
+  }
+  .brand h1{
+    font-family: var(--serif);
+    font-size: 30px;
+    margin: 0 0 2px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .brand p{
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--brass-dim);
+    max-width: 46ch;
+    line-height: 1.4;
+  }
+  button.primary{
+    background: var(--stamp);
+    color: var(--paper-hi);
+    border: 1px solid rgba(0,0,0,0.25);
+    padding: 11px 18px;
+    font-family: var(--sans);
+    font-size: 14.5px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    box-shadow: var(--shadow-flat-sm);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    white-space: nowrap;
+  }
+  button.primary:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.25); }
+  button.primary:active{ transform: translate(0,0); box-shadow: 1px 1px 0 rgba(0,0,0,0.25); }
+
+  /* ---------- Stats ledger ---------- */
+  .stats{
+    display:flex;
+    gap: 0;
+    background: var(--wood-dark);
+    color: var(--paper-hi);
+    overflow-x: auto;
+  }
+  .stat{
+    padding: 10px 22px;
+    border-right: 1px solid rgba(245,239,220,0.14);
+    min-width: 140px;
+  }
+  .stat .n{ font-family: var(--mono); font-size: 19px; font-weight: 700; display:block; }
+  .stat .l{ font-size: 11.5px; color: var(--brass-dim); margin-top:2px; }
+
+  /* ---------- Tab rail ---------- */
+  nav.tabs{
+    display:flex;
+    gap: 6px;
+    background: var(--wood);
+    padding: 14px 24px 0;
+    flex-wrap: wrap;
+  }
+  nav.tabs button{
+    background: var(--wood-dark);
+    color: var(--brass-dim);
+    border: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 10px 16px 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    top: 2px;
+  }
+  nav.tabs button .count{
+    font-family: var(--mono);
+    font-size: 11.5px;
+    opacity: 0.75;
+    margin-left: 6px;
+  }
+  nav.tabs button.active{
+    background: var(--paper);
+    color: var(--ink);
+    top: 0;
+  }
+  nav.tabs button.active .count{ opacity: 0.55; }
+
+  /* ---------- Filter slip ---------- */
+  .filters{
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items:center;
+  }
+  .filters input[type="text"], .filters select{
+    background: var(--paper-hi);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  .filters input[type="text"]{ min-width: 200px; flex: 1 1 200px; }
+  .filters .clear-filters{
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  /* ---------- Main + grid ---------- */
+  main{ flex:1; padding: 22px 24px 60px; }
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+    gap: 20px;
+  }
+
+  .empty-state{
+    border: 1px dashed var(--ink-soft);
+    border-radius: var(--radius);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+    max-width: 480px;
+    margin: 20px auto;
+  }
+  .empty-state h3{ font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 0 0 8px; }
+  .empty-state p{ font-size: 14px; line-height: 1.5; margin: 0 0 16px; }
+
+  .load-more-wrap{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    margin-top: 28px; text-align:center;
+  }
+  .load-more-wrap.hidden{ display:none; }
+  .load-more-count{ font-size:12.5px; color: var(--ink-soft); margin:0; }
+
+  /* ---------- Card ---------- */
+  .card{
+    background: var(--paper-hi);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: var(--shadow-flat);
+    padding: 16px 16px 14px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+  }
+  .card:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(43,36,32,0.22); }
+
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .card-title{ font-family: var(--serif); font-size: 18px; font-weight:700; line-height:1.25; margin:0; }
+  .badge{
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+  }
+  .badge.in-corso{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
+  .badge.finito{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
+  .badge.da-giocare{ background: rgba(62,82,102,0.13); color: var(--slate); border-color: rgba(62,82,102,0.35); }
+  .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
+  .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
+
+  .card-meta{ font-size: 13px; color: var(--ink-soft); line-height:1.6; }
+  .card-meta .row{ display:flex; justify-content:space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 5px; }
+  .card-meta .row:first-child{ border-top:none; padding-top:0; }
+  .card-meta .row span:last-child{ text-align:right; color: var(--ink); font-weight:500; }
+
+  .dots{ display:flex; gap:5px; flex-wrap:wrap; }
+  .dot{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size: 11.5px; color: var(--ink-soft);
+    background: var(--paper-dim);
+    border-radius: 9px;
+    padding: 2px 8px 2px 5px;
+  }
+  .dot i{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+
+  .stars{ font-size: 13px; letter-spacing: 1px; color: var(--brass); }
+  .stars .off{ color: var(--line); }
+
+  .card-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; }
+  .badges-row{ display:flex; gap:6px; flex-wrap:wrap; }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position: fixed; inset:0; background: rgba(43,36,32,0.55);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding: 30px 16px; overflow-y:auto; z-index: 100;
+  }
+  .overlay.hidden{ display:none; }
+  .dialog{
+    background: var(--paper-hi);
+    border: 1px solid var(--ink);
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.3);
+    max-width: 640px;
+    width: 100%;
+    margin: 20px 0 40px;
+    border-radius: var(--radius);
+  }
+  .dialog.small{ max-width: 420px; }
+  .dialog-head{
+    background: var(--wood);
+    color: var(--paper-hi);
+    padding: 16px 22px;
+    display:flex; justify-content:space-between; align-items:center;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .dialog-head h2{ font-family: var(--serif); font-size:20px; margin:0; }
+  .dialog-head button{
+    background:none; border:none; color: var(--brass-dim); font-size:22px; cursor:pointer; line-height:1;
+  }
+  .dialog-body{ padding: 20px 22px 6px; max-height: 70vh; overflow-y:auto; }
+  .dialog-foot{
+    padding: 16px 22px 20px;
+    display:flex; justify-content:space-between; gap: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  fieldset{ border: none; padding: 0; margin: 0 0 20px; }
+  fieldset legend{
+    font-family: var(--serif); font-size: 15px; font-weight:700;
+    padding: 0 0 8px; width:100%; border-bottom: 1px solid var(--line); margin-bottom: 12px;
+  }
+  .field{ margin-bottom: 12px; }
+  .field label{ display:block; font-size: 12.5px; color: var(--ink-soft); margin-bottom:4px; font-weight:600; }
+  .field input[type="text"], .field input[type="date"], .field input[type="number"],
+  .field select, .field textarea{
+    width:100%; background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 9px 10px; font-family: var(--sans); font-size: 14px; color: var(--ink);
+  }
+  .field textarea{ min-height: 64px; resize: vertical; font-family: var(--sans); }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+  .checkbox-row{ display:flex; align-items:center; gap:8px; margin-bottom: 12px; }
+  .checkbox-row input{ width:16px; height:16px; }
+  .checkbox-row label{ font-size:13.5px; color: var(--ink); font-weight:500; margin:0; }
+  .hint{ font-size: 11.5px; color: var(--ink-soft); margin-top:-6px; margin-bottom:12px; }
+
+  .owned-entry{
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px; margin-bottom: 10px; background: var(--paper);
+    position: relative;
+  }
+  .owned-entry .remove{
+    position:absolute; top:8px; right:8px; background:none; border:none;
+    color: var(--stamp); font-size:13px; cursor:pointer; font-weight:600;
+  }
+  .add-owned{
+    background: none; border: 1px dashed var(--ink-soft); border-radius: var(--radius);
+    padding: 9px; width:100%; color: var(--ink-soft); font-size: 13.5px; cursor:pointer;
+  }
+
+  button.secondary{
+    background: var(--paper); border: 1px solid var(--ink); border-radius: var(--radius);
+    padding: 10px 16px; font-size:14px; font-weight:600; color: var(--ink); cursor:pointer;
+  }
+  button.danger{ color: var(--stamp); border-color: var(--stamp); background: var(--paper); border:1px solid var(--stamp); border-radius:var(--radius); padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .detail-section{ margin-bottom: 18px; }
+  .detail-section h4{ font-family: var(--serif); font-size:14.5px; border-bottom:1px solid var(--line); padding-bottom:6px; margin: 0 0 10px; }
+  .detail-row{ display:flex; justify-content:space-between; font-size:13.5px; padding: 4px 0; gap: 10px; }
+  .detail-row span:first-child{ color: var(--ink-soft); }
+  .detail-row span:last-child{ text-align:right; font-weight:500; }
+  .review-text{ font-size: 14px; line-height:1.55; font-style: italic; color: var(--ink); }
+  .ownership-card{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; margin-bottom:8px; font-size:13px; }
+
+  footer.note{ text-align:center; font-size:12px; color: var(--ink-soft); padding: 14px; }
+
+  @media (max-width: 560px){
+    header.top{ padding: 18px 16px 14px; }
+    .brand h1{ font-size: 24px; }
+    main{ padding: 16px 12px 50px; }
+    .filters{ padding: 12px; }
+    nav.tabs{ padding: 12px 12px 0; }
+    .field-row{ flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div id="app" class="hidden">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Videogame DB - The Ultimate Project</h1>
+      <p>L'archivio della tua libreria di giochi: cosa stai giocando, cosa hai finito, cosa aspetta sullo scaffale e cosa vuoi ancora portare a casa.</p>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="primary" id="btn-add">+ Aggiungi gioco</button>
+      <button class="secondary" id="btn-logout" title="Esci dall'account">Esci</button>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div class="filters">
+    <input type="text" id="filter-search" placeholder="Cerca per titolo…">
+    <select id="filter-platform"><option value="">Tutte le piattaforme</option></select>
+    <select id="filter-genre"><option value="">Tutti i generi</option></select>
+    <button class="clear-filters" id="clear-filters">Azzera filtri</button>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="load-more-wrap hidden" id="load-more-wrap"></div>
+  </main>
+</div>
+
+<!-- Detail overlay -->
+<div class="overlay hidden" id="overlay-detail">
+  <div class="dialog" id="detail-dialog"></div>
+</div>
+
+<!-- Form overlay (add/edit) -->
+<div class="overlay hidden" id="overlay-form">
+  <div class="dialog" id="form-dialog"></div>
+</div>
+
+<!-- Confirm overlay -->
+<div class="overlay hidden" id="overlay-confirm">
+  <div class="dialog small">
+    <div class="dialog-head"><h2>Eliminare il gioco?</h2></div>
+    <div class="dialog-body"><p id="confirm-text" style="font-size:14px;"></p></div>
+    <div class="dialog-foot">
+      <button class="secondary" id="confirm-cancel">Annulla</button>
+      <button class="danger" id="confirm-ok">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- Login screen -->
+<div class="overlay" id="login-screen">
+  <div class="dialog small">
+    <div class="dialog-head"><h2>Accedi</h2></div>
+    <div class="dialog-body">
+      <p class="hint" style="margin-top:0;">Accedi con l'account creato nella console Firebase per vedere la tua libreria, sincronizzata su tutti i tuoi dispositivi.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" autocomplete="current-password">
+      </div>
+      <p id="login-error" style="color:var(--stamp); font-size:13px; display:none; margin:0 0 6px;"></p>
+    </div>
+    <div class="dialog-foot" style="justify-content:flex-end;">
+      <button class="primary" id="login-submit">Accedi</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-platform">
+  <option value="PC">
+  <option value="PlayStation 5">
+  <option value="PlayStation 4">
+  <option value="Xbox Series X|S">
+  <option value="Xbox One">
+  <option value="Xbox 360">
+  <option value="Nintendo Switch">
+  <option value="Steam Deck">
+</datalist>
+<datalist id="dl-store">
+  <option value="Steam">
+  <option value="Epic Games Store">
+  <option value="GOG">
+  <option value="Ubisoft Connect">
+  <option value="EA App">
+  <option value="Battle.net">
+  <option value="Xbox Store">
+  <option value="PlayStation Store">
+  <option value="Nintendo eShop">
+  <option value="Itch.io">
+</datalist>
+
+<script type="module">
+  // ---- Inizializzazione Firebase (Auth + Firestore) ----
+  // Questo modulo gira PRIMA dello script principale (i tag <script type="module">
+  // vengono eseguiti in ordine di apparizione nel documento), quindi quando lo
+  // script sotto parte, window.__fb è già pronto.
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+  import {
+    initializeFirestore, doc, getDoc, setDoc, persistentLocalCache
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyALf9LJKjn1_bLKc2kCSfZkb6Kzc_qE1bM",
+    authDomain: "videogamedb-81771.firebaseapp.com",
+    projectId: "videogamedb-81771",
+    storageBucket: "videogamedb-81771.firebasestorage.app",
+    messagingSenderId: "953267230366",
+    appId: "1:953267230366:web:ce4918082223aa3ed94d8f"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  // persistentLocalCache abilita una cache offline: l'app resta consultabile
+  // anche senza rete, e sincronizza da sola non appena torna la connessione.
+  const db = initializeFirestore(fbApp, { localCache: persistentLocalCache() });
+
+  window.__fb = { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithEmailAndPassword, signOut };
+</script>
+
+<script type="module">
+(function(){
+"use strict";
+
+const { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithEmailAndPassword, signOut } = window.__fb;
+let currentUser = null;
+
+/* ============ Helpers ============ */
+function uid(){ return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function esc(str){ return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function setPath(obj, path, value){
+  const parts = path.split('.');
+  let cur = obj;
+  for(let i=0;i<parts.length-1;i++){ cur = cur[parts[i]]; }
+  cur[parts[parts.length-1]] = value;
+}
+function getPath(obj, path){
+  return path.split('.').reduce((o,k)=> (o? o[k] : undefined), obj);
+}
+const DOT_PALETTE = ['#9C3B2E','#52654A','#3E5266','#93732E','#7A4C6B','#3F7A63'];
+function hashColor(str){
+  let h=0;
+  for(let i=0;i<str.length;i++){ h = str.charCodeAt(i) + ((h<<5)-h); }
+  return DOT_PALETTE[Math.abs(h) % DOT_PALETTE.length];
+}
+function accessLabel(t){
+  return {owned:'Posseduto', gamepass:'Xbox Game Pass', psplus:'PlayStation Plus', 'subscription-altro':'Altro abbonamento', prestito:'Prestito / amico'}[t] || '';
+}
+function statusLabel(g){
+  if(g.isInfinite) return 'Infinito';
+  return {'in-corso':'In corso','finito':'Finito','da-giocare':'Da giocare'}[g.status] || null;
+}
+function statusClass(g){
+  if(g.isInfinite) return 'infinito';
+  return g.status || '';
+}
+function starString(rating){
+  if(!rating) return '<span class="off">valutazione assente</span>';
+  const full = Math.round(rating/2);
+  let out = '';
+  for(let i=0;i<5;i++){ out += i<full ? '★' : '<span class="off">★</span>'; }
+  return out + ' <span style="color:var(--ink-soft); font-size:11.5px;">(' + rating + '/10)</span>';
+}
+function allPlatformsOf(g){
+  const set = new Set();
+  if(g.play && g.play.platform) set.add(g.play.platform);
+  (g.ownership||[]).forEach(o=>{ if(o.platform) set.add(o.platform); });
+  return Array.from(set);
+}
+function allPlatformsInLibrary(){
+  const set = new Set();
+  state.games.forEach(g => allPlatformsOf(g).forEach(p=>set.add(p)));
+  return Array.from(set).sort();
+}
+function allGenresInLibrary(){
+  const set = new Set();
+  state.games.forEach(g => (g.genres||[]).forEach(x=>set.add(x)));
+  return Array.from(set).sort();
+}
+
+/* ============ Seed data ============ */
+function seedData(){
+  return [
+    {
+      id: uid(), title:'Mass Effect', genres:['RPG','Sci-Fi'], releaseDate:'2007-11-20', isInfinite:false,
+      status:'finito', wantToBuy:false, wishlistPrice:null,
+      play:{ platform:'PlayStation 4', accessType:'owned', startDate:'2021-06-01', endDate:'2021-06-20', hours:24, rating:8,
+        review:"Il worldbuilding regge ancora benissimo, e Wrex resta il compagno di squadra più memorabile della trilogia." },
+      ownership:[
+        {platform:'Xbox 360', format:'fisico', store:'', drmFree:false, price:19.99},
+        {platform:'PlayStation 4', format:'digitale', store:'PlayStation Store', drmFree:false, price:9.99}
+      ],
+      notes:"Copia fisica presa anni fa per Xbox 360, rimasta chiusa: alla fine l'ho giocato in digitale su PS4."
+    },
+    {
+      id: uid(), title:'Balatro', genres:['Roguelike','Card Game'], releaseDate:'2024-02-20', isInfinite:true,
+      status:'in-corso', wantToBuy:false, wishlistPrice:null,
+      play:{ platform:'PC', accessType:'owned', startDate:'2024-03-02', endDate:'', hours:118, rating:9,
+        review:"Non ha una vera fine: ogni run è solo una scusa per iniziarne un'altra." },
+      ownership:[ {platform:'PC', format:'digitale', store:'Steam', drmFree:false, price:14.99} ],
+      notes:''
+    },
+    {
+      id: uid(), title:'Starfield', genres:['RPG','Sci-Fi','Open World'], releaseDate:'2023-09-06', isInfinite:false,
+      status:'finito', wantToBuy:true, wishlistPrice:29.99,
+      play:{ platform:'Xbox Series X|S', accessType:'gamepass', startDate:'2023-09-10', endDate:'2023-11-02', hours:61, rating:7,
+        review:"Esplorazione un po' dispersiva, ma la trama principale mi ha preso più del previsto." },
+      ownership:[],
+      notes:"Giocato con Game Pass: se scende di prezzo lo compro per avere accesso ai DLC futuri anche offline."
+    },
+    {
+      id: uid(), title:'Hollow Knight', genres:['Metroidvania'], releaseDate:'2017-02-24', isInfinite:false,
+      status:'da-giocare', wantToBuy:false, wishlistPrice:null,
+      play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
+      ownership:[ {platform:'Nintendo Switch', format:'digitale', store:'Nintendo eShop', drmFree:false, price:14.99} ],
+      notes:'Preso durante un saldo, ancora da iniziare.'
+    },
+    {
+      id: uid(), title:'Hollow Knight: Silksong', genres:['Metroidvania'], releaseDate:'2025-09-04', isInfinite:false,
+      status:null, wantToBuy:true, wishlistPrice:19.99,
+      play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
+      ownership:[],
+      notes:'Aspetto un saldo prima di prenderlo.'
+    }
+  ];
+}
+
+/* ============ State ============ */
+const PAGE_SIZE = 20;
+const state = {
+  games: [],
+  activeTab: 'in-corso',
+  filters: { search:'', platform:'', genre:'' },
+  visibleCount: PAGE_SIZE,
+  loaded: false
+};
+let confirmDeleteId = null;
+let draft = null; // used while add/edit form is open
+
+const TABS = [
+  {id:'in-corso', label:'In corso'},
+  {id:'infinito', label:'Infiniti'},
+  {id:'finito', label:'Finiti'},
+  {id:'da-giocare', label:'Da giocare'},
+  {id:'da-comprare', label:'Da comprare'},
+  {id:'tutti', label:'Tutti'}
+];
+
+/* ============ Persistence (Firestore) ============ */
+// Ogni utente autenticato ha un unico documento in library/{uid} che contiene
+// l'intera libreria come stringa JSON: 1 lettura all'apertura, 1 scrittura ad
+// ogni salvataggio, ben al di sotto delle soglie gratuite di Firebase.
+function libraryDocRef(){
+  return doc(db, 'library', currentUser.uid);
+}
+async function loadGames(){
+  try{
+    const snap = await getDoc(libraryDocRef());
+    if(snap.exists() && snap.data().games){
+      state.games = JSON.parse(snap.data().games);
+    } else {
+      // primo accesso -> seed con dati di esempio
+      state.games = seedData();
+      await persist();
+    }
+  }catch(e){
+    console.error('Errore di caricamento dati', e);
+    state.games = [];
+  }
+  state.loaded = true;
+  render();
+}
+async function persist(){
+  try{
+    await setDoc(libraryDocRef(), {
+      games: JSON.stringify(state.games),
+      updatedAt: Date.now()
+    });
+  }catch(e){ console.error('Errore di salvataggio', e); }
+}
+
+/* ============ Derived data / filters ============ */
+function matchesFilters(g){
+  const s = state.filters.search.trim().toLowerCase();
+  if(s && !g.title.toLowerCase().includes(s)) return false;
+  if(state.filters.platform && !allPlatformsOf(g).includes(state.filters.platform)) return false;
+  if(state.filters.genre && !(g.genres||[]).includes(state.filters.genre)) return false;
+  return true;
+}
+function belongsToTab(g, tabId){
+  if(tabId === 'tutti') return true;
+  if(tabId === 'da-comprare') return !!g.wantToBuy;
+  if(tabId === 'infinito') return !!g.isInfinite;
+  if(g.isInfinite) return false; // infinite games live only in their own tab (+ Tutti / Da comprare)
+  return g.status === tabId;
+}
+function getTabGames(tabId){
+  return state.games.filter(g => matchesFilters(g) && belongsToTab(g, tabId));
+}
+
+/* ============ Rendering ============ */
+function render(){
+  if(!state.loaded) return;
+  renderStats();
+  renderTabs();
+  renderFilterOptions();
+  renderGrid();
+}
+
+function renderStats(){
+  const year = new Date().getFullYear();
+  const totalGames = state.games.length;
+  const totalHours = state.games.reduce((s,g)=> s + (Number(g.play && g.play.hours) || 0), 0);
+  const finishedThisYear = state.games.filter(g => g.status==='finito' && g.play && g.play.endDate && g.play.endDate.startsWith(String(year))).length;
+  const ratings = state.games.map(g=> g.play && Number(g.play.rating)).filter(r=> r>0);
+  const avgRating = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : '—';
+  const wishlistSpend = state.games.filter(g=>g.wantToBuy && g.wishlistPrice).reduce((s,g)=> s + Number(g.wishlistPrice||0), 0);
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><span class="n">${totalGames}</span><span class="l">giochi archiviati</span></div>
+    <div class="stat"><span class="n">${totalHours}h</span><span class="l">ore totali giocate</span></div>
+    <div class="stat"><span class="n">${finishedThisYear}</span><span class="l">finiti nel ${year}</span></div>
+    <div class="stat"><span class="n">${avgRating}</span><span class="l">voto medio</span></div>
+    <div class="stat"><span class="n">€${wishlistSpend.toFixed(2)}</span><span class="l">spesa lista desideri</span></div>
+  `;
+}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(t => {
+    const count = getTabGames(t.id).length;
+    const active = state.activeTab === t.id ? ' active' : '';
+    return `<button class="${active}" data-tab="${t.id}">${t.label}<span class="count">${count}</span></button>`;
+  }).join('');
+}
+
+function renderFilterOptions(){
+  const platSel = document.getElementById('filter-platform');
+  const genSel = document.getElementById('filter-genre');
+  const curPlat = state.filters.platform, curGen = state.filters.genre;
+  platSel.innerHTML = '<option value="">Tutte le piattaforme</option>' + allPlatformsInLibrary().map(p=>`<option value="${esc(p)}" ${p===curPlat?'selected':''}>${esc(p)}</option>`).join('');
+  genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
+}
+
+function cardTemplate(g){
+  const badges = [];
+  const sl = statusLabel(g);
+  if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
+  if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
+
+  const platforms = allPlatformsOf(g);
+  const dots = platforms.map(p => `<span class="dot"><i style="background:${hashColor(p)}"></i>${esc(p)}</span>`).join('');
+
+  const playedLine = g.play && g.play.platform
+    ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
+    : '—';
+  const hours = (g.play && g.play.hours) ? g.play.hours + ' h' : '—';
+
+  return `
+    <div class="card" data-id="${g.id}">
+      <div class="card-top">
+        <h3 class="card-title">${esc(g.title)}</h3>
+      </div>
+      ${badges.length ? `<div class="badges-row">${badges.join('')}</div>` : ''}
+      <div class="card-meta">
+        <div class="row"><span>Giocato su</span><span>${playedLine}</span></div>
+        <div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>
+        <div class="row"><span>Ore</span><span>${hours}</span></div>
+        <div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>
+      </div>
+      ${dots ? `<div class="card-tags">${dots}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderGrid(){
+  const list = getTabGames(state.activeTab);
+  const grid = document.getElementById('grid');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  if(list.length === 0){
+    loadMoreWrap.innerHTML = '';
+    loadMoreWrap.classList.add('hidden');
+    let msg = 'Nessun gioco qui per ora.';
+    if(state.activeTab==='da-giocare') msg = "Lo scaffale dei giochi in attesa è vuoto.";
+    if(state.activeTab==='da-comprare') msg = "Nessun gioco in lista desideri al momento.";
+    if(state.activeTab==='finito') msg = "Non hai ancora segnato giochi finiti.";
+    if(state.activeTab==='in-corso') msg = "Non stai giocando niente al momento.";
+    if(state.activeTab==='infinito') msg = "Nessun gioco senza fine (roguelike, live-service…) in archivio.";
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <h3>Vuoto, per ora</h3>
+      <p>${msg}</p>
+      <button class="primary" id="empty-add">+ Aggiungi gioco</button>
+    </div>`;
+    document.getElementById('empty-add').addEventListener('click', ()=> openForm(null));
+    return;
+  }
+
+  const visible = list.slice(0, state.visibleCount);
+  grid.innerHTML = visible.map(cardTemplate).join('');
+  grid.querySelectorAll('.card').forEach(el=>{
+    el.addEventListener('click', ()=> openDetail(el.dataset.id));
+  });
+
+  if(list.length > visible.length){
+    loadMoreWrap.innerHTML = `
+      <p class="load-more-count">Mostrati ${visible.length} di ${list.length}</p>
+      <button class="secondary" id="btn-load-more">Carica altri ${Math.min(PAGE_SIZE, list.length - visible.length)}</button>
+    `;
+    loadMoreWrap.classList.remove('hidden');
+    document.getElementById('btn-load-more').addEventListener('click', ()=>{
+      state.visibleCount += PAGE_SIZE;
+      renderGrid();
+    });
+  } else {
+    loadMoreWrap.innerHTML = '';
+    loadMoreWrap.classList.add('hidden');
+  }
+}
+
+/* ============ Detail dialog ============ */
+function openDetail(id){
+  const g = state.games.find(x=>x.id===id);
+  if(!g) return;
+  const dlg = document.getElementById('detail-dialog');
+
+  const ownershipHtml = (g.ownership||[]).length ? g.ownership.map(o=>`
+    <div class="ownership-card">
+      <strong>${esc(o.platform||'—')}</strong> — ${esc(o.format==='fisico'?'Fisico':'Digitale')}
+      ${o.format==='digitale' && o.store ? ' · ' + esc(o.store) : ''}
+      ${o.format==='digitale' && o.drmFree ? ' · <span style="color:var(--sage);font-weight:600;">DRM Free</span>' : ''}
+      ${o.price ? ` · €${Number(o.price).toFixed(2)}` : ''}
+    </div>
+  `).join('') : `<p style="font-size:13.5px;color:var(--ink-soft);">Nessuna copia posseduta registrata.</p>`;
+
+  const playSection = `
+    <div class="detail-row"><span>Piattaforma</span><span>${esc(g.play.platform)||'—'}</span></div>
+    <div class="detail-row"><span>Tipo di accesso</span><span>${accessLabel(g.play.accessType)||'—'}</span></div>
+    <div class="detail-row"><span>Iniziato il</span><span>${esc(g.play.startDate)||'—'}</span></div>
+    <div class="detail-row"><span>${g.isInfinite ? 'Fine' : 'Finito il'}</span><span>${g.isInfinite ? 'Gioco infinito, nessuna fine prevista' : (esc(g.play.endDate)||'—')}</span></div>
+    <div class="detail-row"><span>Ore giocate</span><span>${g.play.hours || 0} h</span></div>
+    <div class="detail-row"><span>Voto</span><span class="stars">${starString(g.play.rating)}</span></div>
+    ${g.play.review ? `<p class="review-text">«${esc(g.play.review)}»</p>` : ''}
+  `;
+
+  const badges = [];
+  const sl = statusLabel(g);
+  if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
+  if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
+
+  dlg.innerHTML = `
+    <div class="dialog-head">
+      <h2>${esc(g.title)}</h2>
+      <button data-action="close">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="badges-row" style="margin-bottom:14px;">${badges.join('')}</div>
+
+      <div class="detail-section">
+        <h4>Informazioni generali</h4>
+        <div class="detail-row"><span>Genere</span><span>${esc((g.genres||[]).join(', '))||'—'}</span></div>
+        <div class="detail-row"><span>Data di uscita</span><span>${esc(g.releaseDate)||'—'}</span></div>
+        <div class="detail-row"><span>Tipo</span><span>${g.isInfinite ? 'Infinito / senza fine (roguelike, live-service…)' : 'Con una fine'}</span></div>
+      </div>
+
+      <div class="detail-section">
+        <h4>Come l'ho giocato</h4>
+        ${playSection}
+      </div>
+
+      <div class="detail-section">
+        <h4>Copie possedute</h4>
+        ${ownershipHtml}
+      </div>
+
+      ${g.wantToBuy ? `
+      <div class="detail-section">
+        <h4>Lista desideri</h4>
+        <div class="detail-row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>
+      </div>` : ''}
+
+      ${g.notes ? `<div class="detail-section"><h4>Note</h4><p style="font-size:13.5px;line-height:1.5;">${esc(g.notes)}</p></div>` : ''}
+    </div>
+    <div class="dialog-foot">
+      <button class="danger" data-action="delete">Elimina</button>
+      <div style="display:flex; gap:10px;">
+        <button class="secondary" data-action="close">Chiudi</button>
+        <button class="primary" data-action="edit">Modifica</button>
+      </div>
+    </div>
+  `;
+  dlg.querySelectorAll('[data-action="close"]').forEach(b=>b.addEventListener('click', closeDetail));
+  dlg.querySelector('[data-action="edit"]').addEventListener('click', ()=>{ closeDetail(); openForm(id); });
+  dlg.querySelector('[data-action="delete"]').addEventListener('click', ()=>{ closeDetail(); openConfirm(id); });
+
+  document.getElementById('overlay-detail').classList.remove('hidden');
+}
+function closeDetail(){ document.getElementById('overlay-detail').classList.add('hidden'); }
+
+/* ============ Confirm delete ============ */
+function openConfirm(id){
+  const g = state.games.find(x=>x.id===id);
+  if(!g) return;
+  confirmDeleteId = id;
+  document.getElementById('confirm-text').textContent = `Stai per eliminare "${g.title}" dalla tua ludoteca. L'azione non si può annullare.`;
+  document.getElementById('overlay-confirm').classList.remove('hidden');
+}
+function closeConfirm(){ document.getElementById('overlay-confirm').classList.add('hidden'); confirmDeleteId = null; }
+
+/* ============ Add/Edit form ============ */
+function blankGame(){
+  return {
+    id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
+    status:'da-giocare', wantToBuy:false, wishlistPrice:null,
+    play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
+    ownership:[], notes:''
+  };
+}
+
+function openForm(id){
+  const existing = id ? state.games.find(x=>x.id===id) : null;
+  draft = existing ? JSON.parse(JSON.stringify(existing)) : blankGame();
+  draft._isNew = !existing;
+  renderFormShell();
+}
+
+function renderFormShell(){
+  const dlg = document.getElementById('form-dialog');
+  dlg.innerHTML = `
+    <div class="dialog-head">
+      <h2>${draft._isNew ? 'Aggiungi gioco' : 'Modifica gioco'}</h2>
+      <button data-action="close">&times;</button>
+    </div>
+    <div class="dialog-body" id="form-body"></div>
+    <div class="dialog-foot">
+      <button class="secondary" data-action="close">Annulla</button>
+      <button class="primary" data-action="save">Salva</button>
+    </div>
+  `;
+  renderFormBody();
+  document.getElementById('overlay-form').classList.remove('hidden');
+}
+
+function renderFormBody(){
+  const g = draft;
+  const ownershipRows = (g.ownership||[]).map((o,i)=>`
+    <div class="owned-entry" data-own-index="${i}">
+      <button type="button" class="remove" data-remove-own="${i}">Rimuovi</button>
+      <div class="field-row">
+        <div class="field">
+          <label>Piattaforma</label>
+          <input type="text" list="dl-platform" data-own="platform" data-own-index="${i}" value="${esc(o.platform)}" placeholder="Es. PC, PS5, Switch…">
+        </div>
+        <div class="field">
+          <label>Formato</label>
+          <select data-own="format" data-own-index="${i}">
+            <option value="fisico" ${o.format==='fisico'?'selected':''}>Fisico</option>
+            <option value="digitale" ${o.format==='digitale'?'selected':''}>Digitale</option>
+          </select>
+        </div>
+      </div>
+      ${o.format==='digitale' ? `
+      <div class="field-row">
+        <div class="field">
+          <label>Store</label>
+          <input type="text" list="dl-store" data-own="store" data-own-index="${i}" value="${esc(o.store)}" placeholder="Es. Steam, GOG, eShop…">
+        </div>
+        <div class="field" style="flex:0 0 auto; align-self:center;">
+          <div class="checkbox-row" style="margin-bottom:0;">
+            <input type="checkbox" id="drm-${i}" data-own="drmFree" data-own-index="${i}" ${o.drmFree?'checked':''}>
+            <label for="drm-${i}">DRM Free</label>
+          </div>
+        </div>
+      </div>` : ''}
+      <div class="field">
+        <label>Prezzo pagato (€)</label>
+        <input type="number" min="0" step="0.01" data-own="price" data-own-index="${i}" value="${o.price!=null?o.price:''}">
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('form-body').innerHTML = `
+    <fieldset>
+      <legend>Informazioni generali</legend>
+      <div class="field">
+        <label>Titolo *</label>
+        <input type="text" data-field="title" value="${esc(g.title)}" placeholder="Titolo del gioco">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Generi (separati da virgola)</label>
+          <input type="text" data-field="__genres" value="${esc((g.genres||[]).join(', '))}" placeholder="RPG, Sci-Fi…">
+        </div>
+        <div class="field">
+          <label>Data di uscita</label>
+          <input type="date" data-field="releaseDate" value="${esc(g.releaseDate)}">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f-infinite" data-field="isInfinite" ${g.isInfinite?'checked':''}>
+        <label for="f-infinite">È un gioco infinito (roguelike, live-service, sandbox senza fine…)</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stato</legend>
+      ${g.isInfinite ? `
+        <p class="hint" style="margin-top:0;">Impostato automaticamente su "In corso" perché è un gioco infinito.</p>
+      ` : `
+      <div class="field">
+        <label>A che punto sei</label>
+        <select data-field="status">
+          <option value="da-giocare" ${g.status==='da-giocare'?'selected':''}>Da giocare (lo possiedo, non iniziato)</option>
+          <option value="in-corso" ${g.status==='in-corso'?'selected':''}>In corso</option>
+          <option value="finito" ${g.status==='finito'?'selected':''}>Finito</option>
+          <option value="" ${!g.status?'selected':''}>Non iniziato / solo in lista desideri</option>
+        </select>
+      </div>`}
+    </fieldset>
+
+    <fieldset>
+      <legend>Come l'ho giocato</legend>
+      <div class="field-row">
+        <div class="field">
+          <label>Piattaforma giocata</label>
+          <input type="text" list="dl-platform" data-field="play.platform" value="${esc(g.play.platform)}" placeholder="Dove l'hai effettivamente giocato">
+        </div>
+        <div class="field">
+          <label>Tipo di accesso</label>
+          <select data-field="play.accessType">
+            <option value="" ${!g.play.accessType?'selected':''}>—</option>
+            <option value="owned" ${g.play.accessType==='owned'?'selected':''}>Posseduto</option>
+            <option value="gamepass" ${g.play.accessType==='gamepass'?'selected':''}>Xbox Game Pass</option>
+            <option value="psplus" ${g.play.accessType==='psplus'?'selected':''}>PlayStation Plus</option>
+            <option value="subscription-altro" ${g.play.accessType==='subscription-altro'?'selected':''}>Altro abbonamento</option>
+            <option value="prestito" ${g.play.accessType==='prestito'?'selected':''}>Prestito / amico</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Iniziato il</label>
+          <input type="date" data-field="play.startDate" value="${esc(g.play.startDate)}">
+        </div>
+        ${!g.isInfinite ? `
+        <div class="field">
+          <label>Finito il</label>
+          <input type="date" data-field="play.endDate" value="${esc(g.play.endDate)}">
+        </div>` : ''}
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Ore giocate</label>
+          <input type="number" min="0" step="1" data-field="play.hours" value="${g.play.hours||0}">
+        </div>
+        <div class="field">
+          <label>Voto (0–10)</label>
+          <input type="number" min="0" max="10" step="1" data-field="play.rating" value="${g.play.rating||0}">
+        </div>
+      </div>
+      <div class="field">
+        <label>Recensione breve</label>
+        <textarea data-field="play.review" placeholder="Cosa ne pensi?">${esc(g.play.review)}</textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Copie possedute</legend>
+      ${ownershipRows || `<p class="hint" style="margin-top:0;">Nessuna copia registrata: aggiungine una se lo possiedi, oppure lascia vuoto se lo giochi solo in abbonamento.</p>`}
+      <button type="button" class="add-owned" data-action="add-owned">+ Aggiungi una copia posseduta</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Lista desideri</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f-wanttobuy" data-field="wantToBuy" ${g.wantToBuy?'checked':''}>
+        <label for="f-wanttobuy">Voglio comprarlo</label>
+      </div>
+      <p class="hint" style="margin-top:-8px;">Puoi selezionarlo anche se il gioco è già finito o in corso — utile per i giochi giocati in abbonamento che vorresti possedere.</p>
+      ${g.wantToBuy ? `
+      <div class="field">
+        <label>Prezzo desiderato (€)</label>
+        <input type="number" min="0" step="0.01" data-field="wishlistPrice" value="${g.wishlistPrice!=null?g.wishlistPrice:''}">
+      </div>` : ''}
+    </fieldset>
+
+    <fieldset>
+      <legend>Note generali</legend>
+      <div class="field">
+        <textarea data-field="notes" placeholder="Note libere sul gioco…">${esc(g.notes)}</textarea>
+      </div>
+    </fieldset>
+  `;
+}
+
+function onFormFieldChange(e){
+  const t = e.target;
+  if(t.matches('[data-own]')){
+    const idx = Number(t.dataset.ownIndex);
+    const key = t.dataset.own;
+    let val = t.type === 'checkbox' ? t.checked : (t.type === 'number' ? (t.value===''? null : Number(t.value)) : t.value);
+    draft.ownership[idx][key] = val;
+    if(e.type === 'change' && key === 'format'){ renderFormBody(); }
+    return;
+  }
+  if(!t.matches('[data-field]')) return;
+  const field = t.dataset.field;
+
+  if(field === '__genres'){
+    draft.genres = t.value.split(',').map(s=>s.trim()).filter(Boolean);
+    return;
+  }
+  let val;
+  if(t.type === 'checkbox') val = t.checked;
+  else if(t.type === 'number') val = t.value==='' ? 0 : Number(t.value);
+  else val = t.value;
+
+  setPath(draft, field, val);
+
+  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy')){
+    if(field === 'isInfinite' && val === true){ draft.status = 'in-corso'; }
+    renderFormBody();
+  }
+}
+
+function onFormDialogClick(e){
+  const t = e.target;
+  if(t.matches('[data-action="close"]')){ closeForm(); return; }
+  if(t.matches('[data-action="save"]')){ saveDraft(); return; }
+  if(t.matches('[data-action="add-owned"]')){
+    draft.ownership.push({ platform:'', format:'digitale', store:'', drmFree:false, price:null });
+    renderFormBody();
+    return;
+  }
+  if(t.matches('[data-remove-own]')){
+    const idx = Number(t.dataset.removeOwn);
+    draft.ownership.splice(idx,1);
+    renderFormBody();
+    return;
+  }
+}
+
+function closeForm(){
+  document.getElementById('overlay-form').classList.add('hidden');
+  draft = null;
+}
+
+async function saveDraft(){
+  if(!draft.title || !draft.title.trim()){
+    alert('Il titolo è obbligatorio.');
+    return;
+  }
+  const idx = state.games.findIndex(x=>x.id===draft.id);
+  const clean = JSON.parse(JSON.stringify(draft));
+  delete clean._isNew;
+  if(idx>=0) state.games[idx] = clean;
+  else state.games.push(clean);
+  await persist();
+  closeForm();
+  render();
+}
+
+/* ============ Global bindings ============ */
+function bindGlobalEvents(){
+  document.getElementById('btn-add').addEventListener('click', ()=> openForm(null));
+
+  // Form dialog: bound once on the persistent container, since its inner
+  // HTML gets rebuilt on every renderFormBody() call (add/remove ownership rows, etc.)
+  const formDlg = document.getElementById('form-dialog');
+  formDlg.addEventListener('input', onFormFieldChange);
+  formDlg.addEventListener('change', onFormFieldChange);
+  formDlg.addEventListener('click', onFormDialogClick);
+
+  document.getElementById('tabs').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-tab]');
+    if(!btn) return;
+    state.activeTab = btn.dataset.tab;
+    state.visibleCount = PAGE_SIZE;
+    render();
+  });
+
+  document.getElementById('filter-search').addEventListener('input', e=>{
+    state.filters.search = e.target.value;
+    state.visibleCount = PAGE_SIZE;
+    renderTabs(); renderGrid();
+  });
+  document.getElementById('filter-platform').addEventListener('change', e=>{
+    state.filters.platform = e.target.value;
+    state.visibleCount = PAGE_SIZE;
+    renderTabs(); renderGrid();
+  });
+  document.getElementById('filter-genre').addEventListener('change', e=>{
+    state.filters.genre = e.target.value;
+    state.visibleCount = PAGE_SIZE;
+    renderTabs(); renderGrid();
+  });
+  document.getElementById('clear-filters').addEventListener('click', ()=>{
+    state.filters = { search:'', platform:'', genre:'' };
+    state.visibleCount = PAGE_SIZE;
+    document.getElementById('filter-search').value = '';
+    render();
+  });
+
+  document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+  document.getElementById('confirm-ok').addEventListener('click', async ()=>{
+    if(confirmDeleteId){
+      state.games = state.games.filter(g=>g.id!==confirmDeleteId);
+      await persist();
+      closeConfirm();
+      render();
+    }
+  });
+
+  // click outside dialog closes overlay
+  document.getElementById('overlay-detail').addEventListener('click', e=>{ if(e.target.id==='overlay-detail') closeDetail(); });
+  document.getElementById('overlay-form').addEventListener('click', e=>{ if(e.target.id==='overlay-form') closeForm(); });
+  document.getElementById('overlay-confirm').addEventListener('click', e=>{ if(e.target.id==='overlay-confirm') closeConfirm(); });
+
+  document.getElementById('btn-logout').addEventListener('click', ()=> signOut(auth));
+}
+
+/* ============ Login ============ */
+function bindLoginEvents(){
+  const btn = document.getElementById('login-submit');
+  const emailInput = document.getElementById('login-email');
+  const passInput = document.getElementById('login-password');
+  const errorEl = document.getElementById('login-error');
+
+  async function doLogin(){
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+    errorEl.style.display = 'none';
+    if(!email || !password){
+      errorEl.textContent = 'Inserisci email e password.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = 'Accesso in corso…';
+    try{
+      await Promise.race([
+        signInWithEmailAndPassword(auth, email, password),
+        new Promise((_, reject) => setTimeout(()=> reject({ code:'timeout' }), 12000))
+      ]);
+      passInput.value = '';
+    }catch(e){
+      console.error('Errore di login', e);
+      const code = e && e.code;
+      if(code === 'timeout'){
+        errorEl.textContent = "Il login sta impiegando troppo tempo (nessuna risposta entro 12s): probabile problema di rete o di come è stato aperto il file. Codice: timeout.";
+      } else if(code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found'){
+        errorEl.textContent = 'Email o password non corrette.';
+      } else if(code === 'auth/network-request-failed'){
+        errorEl.textContent = 'Errore di rete: verifica la connessione internet del telefono. Codice: auth/network-request-failed.';
+      } else {
+        errorEl.textContent = 'Errore di accesso' + (code ? ' — codice: ' + code : '') + '. Riprova o segnalamelo con questo codice.';
+      }
+      errorEl.style.display = 'block';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  }
+
+  btn.addEventListener('click', doLogin);
+  passInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter') passInput.focus(); });
+}
+
+bindGlobalEvents();
+bindLoginEvents();
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    currentUser = user;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    loadGames();
+  } else {
+    currentUser = null;
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+  }
+});
+
+})();
+</script>
+</body>
+</html>
