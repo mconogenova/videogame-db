@@ -7,11 +7,11 @@
 <!-- Nome dell'app quando viene aggiunta alla Home -->
 <meta name="apple-mobile-web-app-title" content="Videogame DB">
 <meta name="application-name" content="Videogame DB">
-
+ 
 <!-- Icona per dispositivi Android/Chrome e Apple -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
-
+ 
 <!-- Collegamento al Web App Manifest (necessario per Android) -->
 <link rel="manifest" href="manifest.json">
 <style>
@@ -49,9 +49,9 @@
     -webkit-font-smoothing: antialiased;
   }
   ::selection{ background: var(--brass-dim); color: var(--ink); }
-
+ 
   a{ color: inherit; }
-
+ 
   /* ---------- App shell ---------- */
   #app{ display:flex; flex-direction:column; min-height:100vh; }
   #app.hidden{ display:none; }
@@ -59,7 +59,7 @@
     width:100%; background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
     padding: 9px 10px; font-family: var(--sans); font-size: 14px; color: var(--ink);
   }
-
+ 
   header.top{
     background: var(--wood);
     color: var(--paper-hi);
@@ -101,7 +101,7 @@
   }
   button.primary:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.25); }
   button.primary:active{ transform: translate(0,0); box-shadow: 1px 1px 0 rgba(0,0,0,0.25); }
-
+ 
   /* ---------- Stats ledger ---------- */
   .stats{
     display:flex;
@@ -117,7 +117,7 @@
   }
   .stat .n{ font-family: var(--mono); font-size: 19px; font-weight: 700; display:block; }
   .stat .l{ font-size: 11.5px; color: var(--brass-dim); margin-top:2px; }
-
+ 
   /* ---------- Tab rail ---------- */
   nav.tabs{
     display:flex;
@@ -151,7 +151,7 @@
     top: 0;
   }
   nav.tabs button.active .count{ opacity: 0.55; }
-
+ 
   /* ---------- Filter slip ---------- */
   .filters{
     background: var(--paper);
@@ -181,7 +181,7 @@
     cursor: pointer;
     padding: 4px;
   }
-
+ 
   /* ---------- Main + grid ---------- */
   main{ flex:1; padding: 22px 24px 60px; }
   .grid{
@@ -189,7 +189,7 @@
     grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
     gap: 20px;
   }
-
+ 
   .empty-state{
     border: 1px dashed var(--ink-soft);
     border-radius: var(--radius);
@@ -201,14 +201,14 @@
   }
   .empty-state h3{ font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 0 0 8px; }
   .empty-state p{ font-size: 14px; line-height: 1.5; margin: 0 0 16px; }
-
+ 
   .load-more-wrap{
     display:flex; flex-direction:column; align-items:center; gap:8px;
     margin-top: 28px; text-align:center;
   }
   .load-more-wrap.hidden{ display:none; }
   .load-more-count{ font-size:12.5px; color: var(--ink-soft); margin:0; }
-
+ 
   /* ---------- Card ---------- */
   .card{
     background: var(--paper-hi);
@@ -224,7 +224,7 @@
     gap: 10px;
   }
   .card:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(43,36,32,0.22); }
-
+ 
   .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .card-title{ font-family: var(--serif); font-size: 18px; font-weight:700; line-height:1.25; margin:0; }
   .badge{
@@ -242,12 +242,12 @@
   .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
   .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
-
+ 
   .card-meta{ font-size: 13px; color: var(--ink-soft); line-height:1.6; }
   .card-meta .row{ display:flex; justify-content:space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 5px; }
   .card-meta .row:first-child{ border-top:none; padding-top:0; }
   .card-meta .row span:last-child{ text-align:right; color: var(--ink); font-weight:500; }
-
+ 
   .dots{ display:flex; gap:5px; flex-wrap:wrap; }
   .dot{
     display:inline-flex; align-items:center; gap:4px;
@@ -257,13 +257,13 @@
     padding: 2px 8px 2px 5px;
   }
   .dot i{ width:7px; height:7px; border-radius:50%; display:inline-block; }
-
+ 
   .stars{ font-size: 13px; letter-spacing: 1px; color: var(--brass); }
   .stars .off{ color: var(--line); }
-
+ 
   .card-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; }
   .badges-row{ display:flex; gap:6px; flex-wrap:wrap; }
-
+ 
   /* ---------- Modal ---------- */
   .overlay{
     position: fixed; inset:0; background: rgba(43,36,32,0.55);
@@ -298,7 +298,7 @@
     display:flex; justify-content:space-between; gap: 10px;
     border-top: 1px solid var(--line);
   }
-
+ 
   fieldset{ border: none; padding: 0; margin: 0 0 20px; }
   fieldset legend{
     font-family: var(--serif); font-size: 15px; font-weight:700;
@@ -318,7 +318,7 @@
   .checkbox-row input{ width:16px; height:16px; }
   .checkbox-row label{ font-size:13.5px; color: var(--ink); font-weight:500; margin:0; }
   .hint{ font-size: 11.5px; color: var(--ink-soft); margin-top:-6px; margin-bottom:12px; }
-
+ 
   .owned-entry{
     border: 1px solid var(--line); border-radius: var(--radius);
     padding: 12px; margin-bottom: 10px; background: var(--paper);
@@ -332,13 +332,13 @@
     background: none; border: 1px dashed var(--ink-soft); border-radius: var(--radius);
     padding: 9px; width:100%; color: var(--ink-soft); font-size: 13.5px; cursor:pointer;
   }
-
+ 
   button.secondary{
     background: var(--paper); border: 1px solid var(--ink); border-radius: var(--radius);
     padding: 10px 16px; font-size:14px; font-weight:600; color: var(--ink); cursor:pointer;
   }
   button.danger{ color: var(--stamp); border-color: var(--stamp); background: var(--paper); border:1px solid var(--stamp); border-radius:var(--radius); padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; }
-
+ 
   .detail-section{ margin-bottom: 18px; }
   .detail-section h4{ font-family: var(--serif); font-size:14.5px; border-bottom:1px solid var(--line); padding-bottom:6px; margin: 0 0 10px; }
   .detail-row{ display:flex; justify-content:space-between; font-size:13.5px; padding: 4px 0; gap: 10px; }
@@ -346,9 +346,9 @@
   .detail-row span:last-child{ text-align:right; font-weight:500; }
   .review-text{ font-size: 14px; line-height:1.55; font-style: italic; color: var(--ink); }
   .ownership-card{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; margin-bottom:8px; font-size:13px; }
-
+ 
   footer.note{ text-align:center; font-size:12px; color: var(--ink-soft); padding: 14px; }
-
+ 
   @media (max-width: 560px){
     header.top{ padding: 18px 16px 14px; }
     .brand h1{ font-size: 24px; }
@@ -361,7 +361,7 @@
 </head>
 <body>
 <div id="app" class="hidden">
-
+ 
   <header class="top">
     <div class="brand">
       <h1>Videogame DB - The Ultimate Project</h1>
@@ -372,11 +372,11 @@
       <button class="secondary" id="btn-logout" title="Esci dall'account">Esci</button>
     </div>
   </header>
-
+ 
   <div class="stats" id="stats"></div>
-
+ 
   <nav class="tabs" id="tabs"></nav>
-
+ 
   <div class="filters">
     <input type="text" id="filter-search" placeholder="Cerca per titolo…">
     <select id="filter-platform"><option value="">Tutte le piattaforme</option></select>
@@ -390,23 +390,23 @@
     </select>
     <button class="clear-filters" id="clear-filters">Azzera filtri</button>
   </div>
-
+ 
   <main>
     <div class="grid" id="grid"></div>
     <div class="load-more-wrap hidden" id="load-more-wrap"></div>
   </main>
 </div>
-
+ 
 <!-- Detail overlay -->
 <div class="overlay hidden" id="overlay-detail">
   <div class="dialog" id="detail-dialog"></div>
 </div>
-
+ 
 <!-- Form overlay (add/edit) -->
 <div class="overlay hidden" id="overlay-form">
   <div class="dialog" id="form-dialog"></div>
 </div>
-
+ 
 <!-- Confirm overlay -->
 <div class="overlay hidden" id="overlay-confirm">
   <div class="dialog small">
@@ -418,7 +418,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Login screen -->
 <div class="overlay" id="login-screen">
   <div class="dialog small">
@@ -440,7 +440,7 @@
     </div>
   </div>
 </div>
-
+ 
 <datalist id="dl-platform">
   <option value="PC">
   <option value="PlayStation 5">
@@ -470,7 +470,7 @@
   <option value="Xbox Store">    
   <option value="Itch.io">
 </datalist>
-
+ 
 <script type="module">
   // ---- Inizializzazione Firebase (Auth + Firestore) ----
   // Questo modulo gira PRIMA dello script principale (i tag <script type="module">
@@ -483,7 +483,7 @@
   import {
     initializeFirestore, doc, getDoc, setDoc, persistentLocalCache
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
+ 
   const firebaseConfig = {
     apiKey: "AIzaSyALf9LJKjn1_bLKc2kCSfZkb6Kzc_qE1bM",
     authDomain: "videogamedb-81771.firebaseapp.com",
@@ -492,23 +492,23 @@
     messagingSenderId: "953267230366",
     appId: "1:953267230366:web:ce4918082223aa3ed94d8f"
   };
-
+ 
   const fbApp = initializeApp(firebaseConfig);
   const auth = getAuth(fbApp);
   // persistentLocalCache abilita una cache offline: l'app resta consultabile
   // anche senza rete, e sincronizza da sola non appena torna la connessione.
   const db = initializeFirestore(fbApp, { localCache: persistentLocalCache() });
-
+ 
   window.__fb = { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithEmailAndPassword, signOut };
 </script>
-
+ 
 <script type="module">
 (function(){
 "use strict";
-
+ 
 const { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithEmailAndPassword, signOut } = window.__fb;
 let currentUser = null;
-
+ 
 /* ============ Helpers ============ */
 function uid(){ return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 function esc(str){ return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -561,7 +561,7 @@ function allGenresInLibrary(){
   state.games.forEach(g => (g.genres||[]).forEach(x=>set.add(x)));
   return Array.from(set).sort();
 }
-
+ 
 /* ============ Seed data ============ */
 function seedData(){
   return [
@@ -608,7 +608,7 @@ function seedData(){
     }
   ];
 }
-
+ 
 /* ============ State ============ */
 const PAGE_SIZE = 20;
 const state = {
@@ -620,7 +620,7 @@ const state = {
 };
 let confirmDeleteId = null;
 let draft = null; // used while add/edit form is open
-
+ 
 const TABS = [
   {id:'in-corso', label:'In corso'},
   {id:'infinito', label:'Infiniti'},
@@ -630,7 +630,7 @@ const TABS = [
   {id:'da-comprare', label:'Da comprare'},
   {id:'tutti', label:'Tutti'}
 ];
-
+ 
 /* ============ Persistence (Firestore) ============ */
 // Ogni utente autenticato ha un unico documento in library/{uid} che contiene
 // l'intera libreria come stringa JSON: 1 lettura all'apertura, 1 scrittura ad
@@ -663,7 +663,7 @@ async function persist(){
     });
   }catch(e){ console.error('Errore di salvataggio', e); }
 }
-
+ 
 /* ============ Derived data / filters ============ */
 function matchesFilters(g){
   const s = state.filters.search.trim().toLowerCase();
@@ -722,7 +722,7 @@ function getTabGames(tabId){
   }
   return list;
 }
-
+ 
 /* ============ Rendering ============ */
 function render(){
   if(!state.loaded) return;
@@ -731,7 +731,7 @@ function render(){
   renderFilterOptions();
   renderGrid();
 }
-
+ 
 function renderStats(){
   const year = new Date().getFullYear();
   const totalGames = state.games.length;
@@ -740,7 +740,7 @@ function renderStats(){
   const ratings = state.games.map(g=> g.play && Number(g.play.rating)).filter(r=> r>0);
   const avgRating = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : '—';
   const wishlistSpend = state.games.filter(g=>g.wantToBuy && g.wishlistPrice).reduce((s,g)=> s + Number(g.wishlistPrice||0), 0);
-
+ 
   document.getElementById('stats').innerHTML = `
     <div class="stat"><span class="n">${totalGames}</span><span class="l">giochi archiviati</span></div>
     <div class="stat"><span class="n">${totalHours}h</span><span class="l">ore totali giocate</span></div>
@@ -749,7 +749,7 @@ function renderStats(){
     <div class="stat"><span class="n">€${wishlistSpend.toFixed(2)}</span><span class="l">spesa lista desideri</span></div>
   `;
 }
-
+ 
 function renderTabs(){
   document.getElementById('tabs').innerHTML = TABS.map(t => {
     const count = getTabGames(t.id).length;
@@ -757,7 +757,7 @@ function renderTabs(){
     return `<button class="${active}" data-tab="${t.id}">${t.label}<span class="count">${count}</span></button>`;
   }).join('');
 }
-
+ 
 function renderFilterOptions(){
   const platSel = document.getElementById('filter-platform');
   const genSel = document.getElementById('filter-genre');
@@ -766,29 +766,29 @@ function renderFilterOptions(){
   genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
 }
   
-
+ 
 function cardTemplate(g){
   const badges = [];
   const sl = statusLabel(g);
   if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
   if(isFutureRelease(g)) badges.push(`<span class="badge in-uscita">In uscita</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
-
+ 
   const platforms = allPlatformsOf(g);
   const dots = platforms.map(p => `<span class="dot"><i style="background:${hashColor(p)}"></i>${esc(p)}</span>`).join('');
-
+ 
   const playedLine = g.play && g.play.platform
     ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
     : '—';
   const hours = (g.play && g.play.hours) ? g.play.hours + ' h' : '—';
-
+ 
   // Nelle schede ordinate per data di uscita mostriamo la data in card,
   // per rendere leggibile l'ordinamento a colpo d'occhio.
   const showReleaseRow = state.activeTab === 'in-uscita' || state.activeTab === 'da-giocare';
   const releaseRow = showReleaseRow
     ? `<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`
     : '';
-
+ 
   return `
     <div class="card" data-id="${g.id}">
       <div class="card-top">
@@ -806,7 +806,7 @@ function cardTemplate(g){
     </div>
   `;
 }
-
+ 
 function renderGrid(){
   const list = getTabGames(state.activeTab);
   const grid = document.getElementById('grid');
@@ -829,13 +829,13 @@ function renderGrid(){
     document.getElementById('empty-add').addEventListener('click', ()=> openForm(null));
     return;
   }
-
+ 
   const visible = list.slice(0, state.visibleCount);
   grid.innerHTML = visible.map(cardTemplate).join('');
   grid.querySelectorAll('.card').forEach(el=>{
     el.addEventListener('click', ()=> openDetail(el.dataset.id));
   });
-
+ 
   if(list.length > visible.length){
     loadMoreWrap.innerHTML = `
       <p class="load-more-count">Mostrati ${visible.length} di ${list.length}</p>
@@ -851,13 +851,13 @@ function renderGrid(){
     loadMoreWrap.classList.add('hidden');
   }
 }
-
+ 
 /* ============ Detail dialog ============ */
 function openDetail(id){
   const g = state.games.find(x=>x.id===id);
   if(!g) return;
   const dlg = document.getElementById('detail-dialog');
-
+ 
   const ownershipHtml = (g.ownership||[]).length ? g.ownership.map(o=>`
     <div class="ownership-card">
       <strong>${esc(o.platform||'—')}</strong> — ${esc(o.format==='fisico'?'Fisico':'Digitale')}
@@ -866,7 +866,7 @@ function openDetail(id){
       ${o.price ? ` · €${Number(o.price).toFixed(2)}` : ''}
     </div>
   `).join('') : `<p style="font-size:13.5px;color:var(--ink-soft);">Nessuna copia posseduta registrata.</p>`;
-
+ 
   const playSection = `
     <div class="detail-row"><span>Piattaforma</span><span>${esc(g.play.platform)||'—'}</span></div>
     <div class="detail-row"><span>Tipo di accesso</span><span>${accessLabel(g.play.accessType)||'—'}</span></div>
@@ -876,12 +876,12 @@ function openDetail(id){
     <div class="detail-row"><span>Voto</span><span class="stars">${starString(g.play.rating)}</span></div>
     ${g.play.review ? `<p class="review-text">«${esc(g.play.review)}»</p>` : ''}
   `;
-
+ 
   const badges = [];
   const sl = statusLabel(g);
   if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
-
+ 
   dlg.innerHTML = `
     <div class="dialog-head">
       <h2>${esc(g.title)}</h2>
@@ -889,30 +889,30 @@ function openDetail(id){
     </div>
     <div class="dialog-body">
       <div class="badges-row" style="margin-bottom:14px;">${badges.join('')}</div>
-
+ 
       <div class="detail-section">
         <h4>Informazioni generali</h4>
         <div class="detail-row"><span>Genere</span><span>${esc((g.genres||[]).join(', '))||'—'}</span></div>
         <div class="detail-row"><span>Data di uscita</span><span>${esc(g.releaseDate)||'—'}</span></div>
         <div class="detail-row"><span>Tipo</span><span>${g.isInfinite ? 'Infinito / senza fine (roguelike, live-service…)' : 'Con una fine'}</span></div>
       </div>
-
+ 
       <div class="detail-section">
         <h4>Come l'ho giocato</h4>
         ${playSection}
       </div>
-
+ 
       <div class="detail-section">
         <h4>Copie possedute</h4>
         ${ownershipHtml}
       </div>
-
+ 
       ${g.wantToBuy ? `
       <div class="detail-section">
         <h4>Lista desideri</h4>
         <div class="detail-row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>
       </div>` : ''}
-
+ 
       ${g.notes ? `<div class="detail-section"><h4>Note</h4><p style="font-size:13.5px;line-height:1.5;">${esc(g.notes)}</p></div>` : ''}
     </div>
     <div class="dialog-foot">
@@ -926,11 +926,11 @@ function openDetail(id){
   dlg.querySelectorAll('[data-action="close"]').forEach(b=>b.addEventListener('click', closeDetail));
   dlg.querySelector('[data-action="edit"]').addEventListener('click', ()=>{ closeDetail(); openForm(id); });
   dlg.querySelector('[data-action="delete"]').addEventListener('click', ()=>{ closeDetail(); openConfirm(id); });
-
+ 
   document.getElementById('overlay-detail').classList.remove('hidden');
 }
 function closeDetail(){ document.getElementById('overlay-detail').classList.add('hidden'); }
-
+ 
 /* ============ Confirm delete ============ */
 function openConfirm(id){
   const g = state.games.find(x=>x.id===id);
@@ -940,7 +940,7 @@ function openConfirm(id){
   document.getElementById('overlay-confirm').classList.remove('hidden');
 }
 function closeConfirm(){ document.getElementById('overlay-confirm').classList.add('hidden'); confirmDeleteId = null; }
-
+ 
 /* ============ Add/Edit form ============ */
 function blankGame(){
   return {
@@ -950,14 +950,14 @@ function blankGame(){
     ownership:[], notes:''
   };
 }
-
+ 
 function openForm(id){
   const existing = id ? state.games.find(x=>x.id===id) : null;
   draft = existing ? JSON.parse(JSON.stringify(existing)) : blankGame();
   draft._isNew = !existing;
   renderFormShell();
 }
-
+ 
 function renderFormShell(){
   const dlg = document.getElementById('form-dialog');
   dlg.innerHTML = `
@@ -974,7 +974,7 @@ function renderFormShell(){
   renderFormBody();
   document.getElementById('overlay-form').classList.remove('hidden');
 }
-
+ 
 function renderFormBody(){
   const g = draft;
   const ownershipRows = (g.ownership||[]).map((o,i)=>`
@@ -1012,7 +1012,7 @@ function renderFormBody(){
       </div>
     </div>
   `).join('');
-
+ 
   document.getElementById('form-body').innerHTML = `
     <fieldset>
       <legend>Informazioni generali</legend>
@@ -1035,7 +1035,7 @@ function renderFormBody(){
         <label for="f-infinite">È un gioco infinito (roguelike, live-service, sandbox senza fine…)</label>
       </div>
     </fieldset>
-
+ 
     <fieldset>
       <legend>Stato</legend>
       ${g.isInfinite ? `
@@ -1051,7 +1051,7 @@ function renderFormBody(){
         </select>
       </div>`}
     </fieldset>
-
+ 
     <fieldset>
       <legend>Come l'ho giocato</legend>
       <div class="field-row">
@@ -1097,13 +1097,13 @@ function renderFormBody(){
         <textarea data-field="play.review" placeholder="Cosa ne pensi?">${esc(g.play.review)}</textarea>
       </div>
     </fieldset>
-
+ 
     <fieldset>
       <legend>Copie possedute</legend>
       ${ownershipRows || `<p class="hint" style="margin-top:0;">Nessuna copia registrata: aggiungine una se lo possiedi, oppure lascia vuoto se lo giochi solo in abbonamento.</p>`}
       <button type="button" class="add-owned" data-action="add-owned">+ Aggiungi una copia posseduta</button>
     </fieldset>
-
+ 
     <fieldset>
       <legend>Lista desideri</legend>
       <div class="checkbox-row">
@@ -1117,7 +1117,7 @@ function renderFormBody(){
         <input type="number" min="0" step="0.01" data-field="wishlistPrice" value="${g.wishlistPrice!=null?g.wishlistPrice:''}">
       </div>` : ''}
     </fieldset>
-
+ 
     <fieldset>
       <legend>Note generali</legend>
       <div class="field">
@@ -1126,7 +1126,7 @@ function renderFormBody(){
     </fieldset>
   `;
 }
-
+ 
 function onFormFieldChange(e){
   const t = e.target;
   if(t.matches('[data-own]')){
@@ -1139,7 +1139,7 @@ function onFormFieldChange(e){
   }
   if(!t.matches('[data-field]')) return;
   const field = t.dataset.field;
-
+ 
   if(field === '__genres'){
     draft.genres = t.value.split(',').map(s=>s.trim()).filter(Boolean);
     return;
@@ -1148,15 +1148,15 @@ function onFormFieldChange(e){
   if(t.type === 'checkbox') val = t.checked;
   else if(t.type === 'number') val = t.value==='' ? 0 : Number(t.value);
   else val = t.value;
-
+ 
   setPath(draft, field, val);
-
+ 
   if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy')){
     if(field === 'isInfinite' && val === true){ draft.status = 'in-corso'; }
     renderFormBody();
   }
 }
-
+ 
 function onFormDialogClick(e){
   const t = e.target;
   if(t.matches('[data-action="close"]')){ closeForm(); return; }
@@ -1173,12 +1173,12 @@ function onFormDialogClick(e){
     return;
   }
 }
-
+ 
 function closeForm(){
   document.getElementById('overlay-form').classList.add('hidden');
   draft = null;
 }
-
+ 
 async function saveDraft(){
   if(!draft.title || !draft.title.trim()){
     alert('Il titolo è obbligatorio.');
@@ -1193,18 +1193,18 @@ async function saveDraft(){
   closeForm();
   render();
 }
-
+ 
 /* ============ Global bindings ============ */
 function bindGlobalEvents(){
   document.getElementById('btn-add').addEventListener('click', ()=> openForm(null));
-
+ 
   // Form dialog: bound once on the persistent container, since its inner
   // HTML gets rebuilt on every renderFormBody() call (add/remove ownership rows, etc.)
   const formDlg = document.getElementById('form-dialog');
   formDlg.addEventListener('input', onFormFieldChange);
   formDlg.addEventListener('change', onFormFieldChange);
   formDlg.addEventListener('click', onFormDialogClick);
-
+ 
   document.getElementById('tabs').addEventListener('click', e=>{
     const btn = e.target.closest('button[data-tab]');
     if(!btn) return;
@@ -1212,7 +1212,7 @@ function bindGlobalEvents(){
     state.visibleCount = PAGE_SIZE;
     render();
   });
-
+ 
   document.getElementById('filter-search').addEventListener('input', e=>{
     state.filters.search = e.target.value;
     state.visibleCount = PAGE_SIZE;
@@ -1240,7 +1240,7 @@ function bindGlobalEvents(){
   state.visibleCount = PAGE_SIZE;
   renderGrid();
   });
-
+ 
   document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
   document.getElementById('confirm-ok').addEventListener('click', async ()=>{
     if(confirmDeleteId){
@@ -1250,22 +1250,22 @@ function bindGlobalEvents(){
       render();
     }
   });
-
+ 
   // click outside dialog closes overlay
   document.getElementById('overlay-detail').addEventListener('click', e=>{ if(e.target.id==='overlay-detail') closeDetail(); });
   document.getElementById('overlay-form').addEventListener('click', e=>{ if(e.target.id==='overlay-form') closeForm(); });
   document.getElementById('overlay-confirm').addEventListener('click', e=>{ if(e.target.id==='overlay-confirm') closeConfirm(); });
-
+ 
   document.getElementById('btn-logout').addEventListener('click', ()=> signOut(auth));
 }
-
+ 
 /* ============ Login ============ */
 function bindLoginEvents(){
   const btn = document.getElementById('login-submit');
   const emailInput = document.getElementById('login-email');
   const passInput = document.getElementById('login-password');
   const errorEl = document.getElementById('login-error');
-
+ 
   async function doLogin(){
     const email = emailInput.value.trim();
     const password = passInput.value;
@@ -1288,7 +1288,7 @@ function bindLoginEvents(){
       console.error('Errore di login', e);
       const code = e && e.code;
       if(code === 'timeout'){
-        errorEl.textContent = "Il login sta impiegando troppo tempo (nessuna risposta entro 12s): probabile problema di rete o di come è stato aperto il file. Codice: timeout.";
+        errorEl.textContent = "Il login sta impiegando troppo tempo (nessuna risposta entro 12s). Codice: timeout.";
       } else if(code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found'){
         errorEl.textContent = 'Email o password non corrette.';
       } else if(code === 'auth/network-request-failed'){
@@ -1302,15 +1302,15 @@ function bindLoginEvents(){
       btn.textContent = originalLabel;
     }
   }
-
+ 
   btn.addEventListener('click', doLogin);
   passInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
   emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter') passInput.focus(); });
 }
-
+ 
 bindGlobalEvents();
 bindLoginEvents();
-
+ 
 onAuthStateChanged(auth, (user)=>{
   if(user){
     currentUser = user;
@@ -1323,7 +1323,7 @@ onAuthStateChanged(auth, (user)=>{
     document.getElementById('login-screen').classList.remove('hidden');
   }
 });
-
+ 
 })();
 </script>
 </body>
