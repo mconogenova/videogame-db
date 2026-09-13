@@ -1204,7 +1204,7 @@ function renderFormBody(){
       </div>` : ''}
     </fieldset>
 
-    ${isFutureRelease(g) ? `
+    ${(g._isNew || isFutureRelease(g)) ? `
     <fieldset>
       <legend>In arrivo</legend>
       <div class="checkbox-row">
@@ -1292,6 +1292,14 @@ async function saveDraft(){
   if(!draft.title || !draft.title.trim()){
     alert('Il titolo è obbligatorio.');
     return;
+  }
+  if(!isFutureRelease(draft)){
+    // Se alla fine il gioco non risulta "in uscita" (data passata, vuota o mai
+    // impostata), i campi di prenotazione non hanno più senso: li azzeriamo
+    // per non lasciare dati incoerenti nascosti nella scheda.
+    draft.preorder = false;
+    draft.preorderPrice = null;
+    draft.releasePlatforms = [];
   }
   const idx = state.games.findIndex(x=>x.id===draft.id);
   const clean = JSON.parse(JSON.stringify(draft));
