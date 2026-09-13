@@ -242,6 +242,7 @@
   .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
   .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
+  .badge.prenotato{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
 
   .card-meta{ font-size: 13px; color: var(--ink-soft); line-height:1.6; }
   .card-meta .row{ display:flex; justify-content:space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 5px; }
@@ -387,6 +388,11 @@
       <option value="name-desc">Nome (Z - A)</option>
       <option value="rating-desc">Voto (Più alto)</option>
       <option value="rating-asc">Voto (Più basso)</option>
+    </select>
+    <select id="filter-buyplayed" style="display:none;">
+      <option value="">Tutti (da comprare)</option>
+      <option value="played">Già giocati</option>
+      <option value="not-played">Non ancora giocati</option>
     </select>
     <button class="clear-filters" id="clear-filters">Azzera filtri</button>
   </div>
@@ -610,11 +616,11 @@ function seedData(){
 }
 
 /* ============ State ============ */
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 const state = {
   games: [],
   activeTab: 'in-corso',
-  filters: { search: '', platform: '', genre: '', sort: 'name-asc' },
+  filters: { search: '', platform: '', genre: '', sort: 'name-asc', buyPlayed: '' },
   visibleCount: PAGE_SIZE,
   loaded: false
 };
@@ -708,11 +714,17 @@ function formatDate(iso){
 }
 function belongsToTab(g, tabId){
   if(tabId === 'tutti') return true;
-  if(tabId === 'da-comprare') return !!g.wantToBuy;
+  if(tabId === 'in-uscita') return isFutureRelease(g);
+  if(isFutureRelease(g)) return false; // i giochi non ancora usciti vivono solo in "In uscita"
+  if(tabId === 'da-comprare'){
+    if(!g.wantToBuy) return false;
+    const played = g.status === 'finito' || g.status === 'in-corso';
+    if(state.filters.buyPlayed === 'played') return played;
+    if(state.filters.buyPlayed === 'not-played') return !played;
+    return true;
+  }
   if(tabId === 'infinito') return !!g.isInfinite;
   if(g.isInfinite) return false; // infinite games live only in their own tab (+ Tutti / Da comprare)
-  if(tabId === 'in-uscita') return isFutureRelease(g);
-  if(isFutureRelease(g)) return false; // i giochi non ancora usciti vivono solo in "In uscita" (+ Tutti / Da comprare)
   return g.status === tabId;
 }
 function sortByUserChoice(list){
@@ -805,12 +817,21 @@ function renderFilterOptions(){
     { value:'start-desc', label:'Data inizio (più recente)' },
     { value:'start-asc', label:'Data inizio (meno recente)' }
   ];
-  const sortOptions = state.activeTab === 'finito' ? baseSortOptions.concat(finitoSortOptions) : baseSortOptions;
+  const sortOptions = (state.activeTab === 'finito' || state.activeTab === 'infinito') ? baseSortOptions.concat(finitoSortOptions) : baseSortOptions;
   const validValues = sortOptions.map(o=>o.value);
   if(!validValues.includes(state.filters.sort)){
     state.filters.sort = 'name-asc';
   }
   sortSel.innerHTML = sortOptions.map(o=>`<option value="${o.value}" ${o.value===state.filters.sort?'selected':''}>${o.label}</option>`).join('');
+
+  // Il filtro "già giocato / non giocato" ha senso solo nella tab "Da comprare".
+  const buyPlayedSel = document.getElementById('filter-buyplayed');
+  if(state.activeTab === 'da-comprare'){
+    buyPlayedSel.style.display = '';
+    buyPlayedSel.value = state.filters.buyPlayed || '';
+  } else {
+    buyPlayedSel.style.display = 'none';
+  }
 }
   
 
@@ -820,6 +841,7 @@ function cardTemplate(g){
   if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
   if(isFutureRelease(g)) badges.push(`<span class="badge in-uscita">In uscita</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
+  if(isFutureRelease(g) && g.preorder) badges.push(`<span class="badge prenotato">Prenotato</span>`);
 
   const platforms = allPlatformsOf(g);
   const dots = platforms.map(p => `<span class="dot"><i style="background:${hashColor(p)}"></i>${esc(p)}</span>`).join('');
@@ -836,6 +858,13 @@ function cardTemplate(g){
     ? `<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`
     : '';
 
+  // Sulla tab "In uscita" mostriamo anche le piattaforme annunciate e il
+  // costo di prenotazione/prezzo previsto, oltre allo stato di prenotazione (badge).
+  const upcomingRows = state.activeTab === 'in-uscita'
+    ? `<div class="row"><span>Piattaforme</span><span>${esc((g.releasePlatforms||[]).join(', ')) || '—'}</span></div>
+       <div class="row"><span>Costo</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>`
+    : '';
+
   return `
     <div class="card" data-id="${g.id}">
       <div class="card-top">
@@ -846,6 +875,7 @@ function cardTemplate(g){
         ${releaseRow}
         <div class="row"><span>Giocato su</span><span>${playedLine}</span></div>
         <div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>
+        ${upcomingRows}
         <div class="row"><span>Ore</span><span>${hours}</span></div>
         <div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>
       </div>
@@ -960,6 +990,14 @@ function openDetail(id){
         <div class="detail-row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>
       </div>` : ''}
 
+      ${isFutureRelease(g) ? `
+      <div class="detail-section">
+        <h4>In arrivo</h4>
+        <div class="detail-row"><span>Prenotato</span><span>${g.preorder ? 'Sì' : 'No'}</span></div>
+        <div class="detail-row"><span>Costo prenotazione / previsto</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>
+        <div class="detail-row"><span>Piattaforme di uscita</span><span>${esc((g.releasePlatforms||[]).join(', '))||'—'}</span></div>
+      </div>` : ''}
+
       ${g.notes ? `<div class="detail-section"><h4>Note</h4><p style="font-size:13.5px;line-height:1.5;">${esc(g.notes)}</p></div>` : ''}
     </div>
     <div class="dialog-foot">
@@ -993,6 +1031,7 @@ function blankGame(){
   return {
     id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
     status:'da-giocare', wantToBuy:false, wishlistPrice:null,
+    preorder:false, preorderPrice:null, releasePlatforms:[],
     play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
     ownership:[], notes:''
   };
@@ -1165,6 +1204,25 @@ function renderFormBody(){
       </div>` : ''}
     </fieldset>
 
+    ${isFutureRelease(g) ? `
+    <fieldset>
+      <legend>In arrivo</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f-preorder" data-field="preorder" ${g.preorder?'checked':''}>
+        <label for="f-preorder">L'ho prenotato</label>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Costo prenotazione / prezzo previsto (€)</label>
+          <input type="number" min="0" step="0.01" data-field="preorderPrice" value="${g.preorderPrice!=null?g.preorderPrice:''}">
+        </div>
+        <div class="field">
+          <label>Piattaforme di uscita (separate da virgola)</label>
+          <input type="text" list="dl-platform" data-field="__releasePlatforms" value="${esc((g.releasePlatforms||[]).join(', '))}" placeholder="PC, PS5, Switch…">
+        </div>
+      </div>
+    </fieldset>` : ''}
+
     <fieldset>
       <legend>Note generali</legend>
       <div class="field">
@@ -1191,6 +1249,10 @@ function onFormFieldChange(e){
     draft.genres = t.value.split(',').map(s=>s.trim()).filter(Boolean);
     return;
   }
+  if(field === '__releasePlatforms'){
+    draft.releasePlatforms = t.value.split(',').map(s=>s.trim()).filter(Boolean);
+    return;
+  }
   let val;
   if(t.type === 'checkbox') val = t.checked;
   else if(t.type === 'number') val = t.value==='' ? 0 : Number(t.value);
@@ -1198,7 +1260,7 @@ function onFormFieldChange(e){
 
   setPath(draft, field, val);
 
-  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy')){
+  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy' || field === 'releaseDate')){
     if(field === 'isInfinite' && val === true){ draft.status = 'in-corso'; }
     renderFormBody();
   }
@@ -1276,7 +1338,7 @@ function bindGlobalEvents(){
     renderTabs(); renderGrid();
   });
   document.getElementById('clear-filters').addEventListener('click', () => {
-    state.filters = { search: '', platform: '', genre: '', sort: 'name-asc' };
+    state.filters = { search: '', platform: '', genre: '', sort: 'name-asc', buyPlayed: '' };
     state.visibleCount = PAGE_SIZE;
     document.getElementById('filter-search').value = '';
     document.getElementById('filter-sort').value = 'name-asc';
@@ -1286,6 +1348,11 @@ function bindGlobalEvents(){
   state.filters.sort = e.target.value;
   state.visibleCount = PAGE_SIZE;
   renderGrid();
+  });
+  document.getElementById('filter-buyplayed').addEventListener('change', (e) => {
+    state.filters.buyPlayed = e.target.value;
+    state.visibleCount = PAGE_SIZE;
+    renderTabs(); renderGrid();
   });
 
   document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
