@@ -946,10 +946,10 @@ function openDetail(id){
 
   const playSection = `
     <div class="detail-row"><span>Piattaforma</span><span>${esc(g.play.platform)||'—'}</span></div>
-    <div class="detail-row"><span>Tipo di accesso</span><span>${accessLabel(g.play.accessType)||'—'}</span></div>
-    <div class="detail-row"><span>Iniziato il</span><span>${esc(g.play.startDate)||'—'}</span></div>
-    <div class="detail-row"><span>${g.isInfinite ? 'Fine' : 'Finito il'}</span><span>${g.isInfinite ? 'Gioco infinito, nessuna fine prevista' : (esc(g.play.endDate)||'—')}</span></div>
-    <div class="detail-row"><span>Ore giocate</span><span>${g.play.hours || 0} h</span></div>
+    <div class="detail-row"><span>Modalità di accesso</span><span>${accessLabel(g.play.accessType)||'—'}</span></div>
+    <div class="detail-row"><span>Data inizio</span><span>${esc(g.play.startDate)||'—'}</span></div>
+    <div class="detail-row"><span>${g.isInfinite ? 'Fine' : 'Data Fine'}</span><span>${g.isInfinite ? 'Gioco infinito, nessuna fine prevista' : (esc(g.play.endDate)||'—')}</span></div>
+    <div class="detail-row"><span>Ore di gioco</span><span>${g.play.hours || 0} h</span></div>
     <div class="detail-row"><span>Voto</span><span class="stars">${starString(g.play.rating)}</span></div>
     ${g.play.review ? `<p class="review-text">«${esc(g.play.review)}»</p>` : ''}
   `;
@@ -975,7 +975,7 @@ function openDetail(id){
       </div>
 
       <div class="detail-section">
-        <h4>Come l'ho giocato</h4>
+        <h4>Informazioni di gioco</h4>
         ${playSection}
       </div>
 
@@ -995,7 +995,7 @@ function openDetail(id){
         <h4>In arrivo</h4>
         <div class="detail-row"><span>Prenotato</span><span>${g.preorder ? 'Sì' : 'No'}</span></div>
         <div class="detail-row"><span>Costo prenotazione / previsto</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>
-        <div class="detail-row"><span>Piattaforme di uscita</span><span>${esc((g.releasePlatforms||[]).join(', '))||'—'}</span></div>
+        <div class="detail-row"><span>Disponibilità / Piattaforma Acquisto</span><span>${esc((g.releasePlatforms||[]).join(', '))||'—'}</span></div>
       </div>` : ''}
 
       ${g.notes ? `<div class="detail-section"><h4>Note</h4><p style="font-size:13.5px;line-height:1.5;">${esc(g.notes)}</p></div>` : ''}
@@ -1108,7 +1108,7 @@ function renderFormBody(){
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Generi (separati da virgola)</label>
+          <label>Genere (Se più di uno separarli con la virgola)</label>
           <input type="text" data-field="__genres" value="${esc((g.genres||[]).join(', '))}" placeholder="RPG, Sci-Fi…">
         </div>
         <div class="field">
@@ -1128,7 +1128,7 @@ function renderFormBody(){
         <p class="hint" style="margin-top:0;">Impostato automaticamente su "In corso" perché è un gioco infinito.</p>
       ` : `
       <div class="field">
-        <label>A che punto sei</label>
+        <label>A che punto sei?</label>
         <select data-field="status">
           <option value="da-giocare" ${g.status==='da-giocare'?'selected':''}>Da giocare (lo possiedo, non iniziato)</option>
           <option value="in-corso" ${g.status==='in-corso'?'selected':''}>In corso</option>
@@ -1139,14 +1139,14 @@ function renderFormBody(){
     </fieldset>
 
     <fieldset>
-      <legend>Come l'ho giocato</legend>
+      <legend>Informazioni di gioco</legend>
       <div class="field-row">
         <div class="field">
-          <label>Piattaforma giocata</label>
+          <label>Piattaforma di gioco</label>
           <input type="text" list="dl-platform" data-field="play.platform" value="${esc(g.play.platform)}" placeholder="Dove l'hai effettivamente giocato">
         </div>
         <div class="field">
-          <label>Tipo di accesso</label>
+          <label>Modalità di accesso</label>
           <select data-field="play.accessType">
             <option value="" ${!g.play.accessType?'selected':''}>—</option>
             <option value="owned" ${g.play.accessType==='owned'?'selected':''}>Posseduto</option>
@@ -1159,18 +1159,18 @@ function renderFormBody(){
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Iniziato il</label>
+          <label>Data inizio</label>
           <input type="date" data-field="play.startDate" value="${esc(g.play.startDate)}">
         </div>
         ${!g.isInfinite ? `
         <div class="field">
-          <label>Finito il</label>
+          <label>Data Fine</label>
           <input type="date" data-field="play.endDate" value="${esc(g.play.endDate)}">
         </div>` : ''}
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Ore giocate</label>
+          <label>Ore di gioco</label>
           <input type="number" min="0" step="1" data-field="play.hours" value="${g.play.hours||0}">
         </div>
         <div class="field">
@@ -1179,7 +1179,7 @@ function renderFormBody(){
         </div>
       </div>
       <div class="field">
-        <label>Recensione breve</label>
+        <label>Recensione</label>
         <textarea data-field="play.review" placeholder="Cosa ne pensi?">${esc(g.play.review)}</textarea>
       </div>
     </fieldset>
@@ -1187,7 +1187,7 @@ function renderFormBody(){
     <fieldset>
       <legend>Copie possedute</legend>
       ${ownershipRows || `<p class="hint" style="margin-top:0;">Nessuna copia registrata: aggiungine una se lo possiedi, oppure lascia vuoto se lo giochi solo in abbonamento.</p>`}
-      <button type="button" class="add-owned" data-action="add-owned">+ Aggiungi una copia posseduta</button>
+      <button type="button" class="add-owned" data-action="add-owned">+ Aggiungi una copia</button>
     </fieldset>
 
     <fieldset>
@@ -1196,10 +1196,10 @@ function renderFormBody(){
         <input type="checkbox" id="f-wanttobuy" data-field="wantToBuy" ${g.wantToBuy?'checked':''}>
         <label for="f-wanttobuy">Voglio comprarlo</label>
       </div>
-      <p class="hint" style="margin-top:-8px;">Puoi selezionarlo anche se il gioco è già finito o in corso — utile per i giochi giocati in abbonamento che vorresti possedere.</p>
+      <p class="hint" style="margin-top:-8px;">Vuoi comprare il gioco in una versione fisica o DRM Free?</p>
       ${g.wantToBuy ? `
       <div class="field">
-        <label>Prezzo desiderato (€)</label>
+        <label>Prezzo target (€)</label>
         <input type="number" min="0" step="0.01" data-field="wishlistPrice" value="${g.wishlistPrice!=null?g.wishlistPrice:''}">
       </div>` : ''}
     </fieldset>
@@ -1209,7 +1209,7 @@ function renderFormBody(){
       <legend>In arrivo</legend>
       <div class="checkbox-row">
         <input type="checkbox" id="f-preorder" data-field="preorder" ${g.preorder?'checked':''}>
-        <label for="f-preorder">L'ho prenotato</label>
+        <label for="f-preorder">Prenotato?</label>
       </div>
       <div class="field-row">
         <div class="field">
@@ -1217,7 +1217,7 @@ function renderFormBody(){
           <input type="number" min="0" step="0.01" data-field="preorderPrice" value="${g.preorderPrice!=null?g.preorderPrice:''}">
         </div>
         <div class="field">
-          <label>Piattaforme di uscita (separate da virgola)</label>
+          <label>Disponibilità / Piattaforma Acquisto (Se più di una separarle con la virgola)</label>
           <input type="text" list="dl-platform" data-field="__releasePlatforms" value="${esc((g.releasePlatforms||[]).join(', '))}" placeholder="PC, PS5, Switch…">
         </div>
       </div>
