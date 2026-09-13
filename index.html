@@ -381,6 +381,13 @@
     <input type="text" id="filter-search" placeholder="Cerca per titolo…">
     <select id="filter-platform"><option value="">Tutte le piattaforme</option></select>
     <select id="filter-genre"><option value="">Tutti i generi</option></select>
+  <!-- NUOVO MENU DI ORDINAMENTO -->
+    <select id="filter-sort">
+      <option value="name-asc">Nome (A - Z)</option>
+      <option value="name-desc">Nome (Z - A)</option>
+      <option value="rating-desc">Voto (Più alto)</option>
+      <option value="rating-asc">Voto (Più basso)</option>
+    </select>
     <button class="clear-filters" id="clear-filters">Azzera filtri</button>
   </div>
 
@@ -607,7 +614,7 @@ const PAGE_SIZE = 20;
 const state = {
   games: [],
   activeTab: 'in-corso',
-  filters: { search:'', platform:'', genre:'' },
+  filters: { search: '', platform: '', genre: '', sort: 'name-asc' },
   visibleCount: PAGE_SIZE,
   loaded: false
 };
@@ -757,7 +764,9 @@ function renderFilterOptions(){
   const curPlat = state.filters.platform, curGen = state.filters.genre;
   platSel.innerHTML = '<option value="">Tutte le piattaforme</option>' + allPlatformsInLibrary().map(p=>`<option value="${esc(p)}" ${p===curPlat?'selected':''}>${esc(p)}</option>`).join('');
   genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
+});
 }
+  
 
 function cardTemplate(g){
   const badges = [];
@@ -1220,11 +1229,17 @@ function bindGlobalEvents(){
     state.visibleCount = PAGE_SIZE;
     renderTabs(); renderGrid();
   });
-  document.getElementById('clear-filters').addEventListener('click', ()=>{
-    state.filters = { search:'', platform:'', genre:'' };
+  document.getElementById('clear-filters').addEventListener('click', () => {
+    state.filters = { search: '', platform: '', genre: '', sort: 'name-asc' };
     state.visibleCount = PAGE_SIZE;
     document.getElementById('filter-search').value = '';
+    document.getElementById('filter-sort').value = 'name-asc';
     render();
+  });
+  document.getElementById('filter-sort').addEventListener('change', (e) => {
+  state.filters.sort = e.target.value;
+  state.visibleCount = PAGE_SIZE;
+  renderGrid();
   });
 
   document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
