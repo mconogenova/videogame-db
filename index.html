@@ -764,7 +764,6 @@ function renderFilterOptions(){
   const curPlat = state.filters.platform, curGen = state.filters.genre;
   platSel.innerHTML = '<option value="">Tutte le piattaforme</option>' + allPlatformsInLibrary().map(p=>`<option value="${esc(p)}" ${p===curPlat?'selected':''}>${esc(p)}</option>`).join('');
   genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
-});
 }
   
 
