@@ -231,6 +231,7 @@
   .badge.da-giocare{ background: rgba(62,82,102,0.13); color: var(--slate); border-color: rgba(62,82,102,0.35); }
   .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
+  .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
 
   .card-meta{ font-size: 13px; color: var(--ink-soft); line-height:1.6; }
   .card-meta .row{ display:flex; justify-content:space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 5px; }
@@ -601,6 +602,7 @@ const TABS = [
   {id:'infinito', label:'Infiniti'},
   {id:'finito', label:'Finiti'},
   {id:'da-giocare', label:'Da giocare'},
+  {id:'in-uscita', label:'In uscita'},
   {id:'da-comprare', label:'Da comprare'},
   {id:'tutti', label:'Tutti'}
 ];
@@ -646,15 +648,55 @@ function matchesFilters(g){
   if(state.filters.genre && !(g.genres||[]).includes(state.filters.genre)) return false;
   return true;
 }
+// Un gioco è "non ancora uscito" se ha una data di uscita valida e futura.
+// Le date sono stringhe 'YYYY-MM-DD' (dall'input type="date"): il confronto
+// come stringhe è già cronologicamente corretto, senza problemi di fuso orario.
+function isFutureRelease(g){
+  if(!g.releaseDate) return false;
+  const d = new Date(g.releaseDate);
+  if(isNaN(d.getTime())) return false;
+  const todayStr = new Date().toISOString().slice(0,10);
+  return g.releaseDate > todayStr;
+}
+function releaseTimestamp(g){
+  if(!g.releaseDate) return null;
+  const t = new Date(g.releaseDate).getTime();
+  return isNaN(t) ? null : t;
+}
+// Ordina per vicinanza alla data odierna: per date future = le più imminenti
+// prima; per date passate (già uscite) = le più recenti prima. I giochi senza
+// data valida finiscono in fondo.
+function sortByReleaseProximity(list){
+  const now = Date.now();
+  return list.slice().sort((a,b)=>{
+    const ta = releaseTimestamp(a), tb = releaseTimestamp(b);
+    if(ta===null && tb===null) return 0;
+    if(ta===null) return 1;
+    if(tb===null) return -1;
+    return Math.abs(ta-now) - Math.abs(tb-now);
+  });
+}
+function formatDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return esc(iso);
+  return d.toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' });
+}
 function belongsToTab(g, tabId){
   if(tabId === 'tutti') return true;
   if(tabId === 'da-comprare') return !!g.wantToBuy;
   if(tabId === 'infinito') return !!g.isInfinite;
   if(g.isInfinite) return false; // infinite games live only in their own tab (+ Tutti / Da comprare)
+  if(tabId === 'in-uscita') return isFutureRelease(g);
+  if(isFutureRelease(g)) return false; // i giochi non ancora usciti vivono solo in "In uscita" (+ Tutti / Da comprare)
   return g.status === tabId;
 }
 function getTabGames(tabId){
-  return state.games.filter(g => matchesFilters(g) && belongsToTab(g, tabId));
+  let list = state.games.filter(g => matchesFilters(g) && belongsToTab(g, tabId));
+  if(tabId === 'da-giocare' || tabId === 'in-uscita'){
+    list = sortByReleaseProximity(list);
+  }
+  return list;
 }
 
 /* ============ Rendering ============ */
@@ -704,6 +746,7 @@ function cardTemplate(g){
   const badges = [];
   const sl = statusLabel(g);
   if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
+  if(isFutureRelease(g)) badges.push(`<span class="badge in-uscita">In uscita</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
 
   const platforms = allPlatformsOf(g);
@@ -714,6 +757,13 @@ function cardTemplate(g){
     : '—';
   const hours = (g.play && g.play.hours) ? g.play.hours + ' h' : '—';
 
+  // Nelle schede ordinate per data di uscita mostriamo la data in card,
+  // per rendere leggibile l'ordinamento a colpo d'occhio.
+  const showReleaseRow = state.activeTab === 'in-uscita' || state.activeTab === 'da-giocare';
+  const releaseRow = showReleaseRow
+    ? `<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`
+    : '';
+
   return `
     <div class="card" data-id="${g.id}">
       <div class="card-top">
@@ -721,6 +771,7 @@ function cardTemplate(g){
       </div>
       ${badges.length ? `<div class="badges-row">${badges.join('')}</div>` : ''}
       <div class="card-meta">
+        ${releaseRow}
         <div class="row"><span>Giocato su</span><span>${playedLine}</span></div>
         <div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>
         <div class="row"><span>Ore</span><span>${hours}</span></div>
@@ -744,6 +795,7 @@ function renderGrid(){
     if(state.activeTab==='finito') msg = "Non hai ancora segnato giochi finiti.";
     if(state.activeTab==='in-corso') msg = "Non stai giocando niente al momento.";
     if(state.activeTab==='infinito') msg = "Nessun gioco senza fine (roguelike, live-service…) in archivio.";
+    if(state.activeTab==='in-uscita') msg = "Nessun gioco in arrivo al momento.";
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
       <h3>Vuoto, per ora</h3>
       <p>${msg}</p>
