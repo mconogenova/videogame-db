@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Videogame DB - The Ultimate Project</title>
+<title>Videogame DB</title>
 <!-- Nome dell'app quando viene aggiunta alla Home -->
 <meta name="apple-mobile-web-app-title" content="Videogame DB">
 <meta name="application-name" content="Videogame DB">
@@ -14,6 +14,11 @@
 
 <!-- Collegamento al Web App Manifest (necessario per Android) -->
 <link rel="manifest" href="manifest.json">
+
+<!-- Font per il logo dell'header -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barriecito&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper: #EAE2CA;
@@ -69,21 +74,32 @@
     justify-content:space-between;
     gap: 20px;
     flex-wrap: wrap;
-    border-bottom: 6px solid var(--wood-dark);
+    border-bottom: 3px solid var(--brass);
   }
-  .brand h1{
-    font-family: var(--serif);
-    font-size: 30px;
-    margin: 0 0 2px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
+  .brand{ display: inline-block; line-height: 1; }
+  .brand .logo-main{
+    font-family: 'Barriecito', cursive;
+    font-size: 36px;
+    color: var(--paper-hi);
+    letter-spacing: 0.5px;
   }
-  .brand p{
-    margin: 0;
-    font-size: 13.5px;
-    color: var(--brass-dim);
-    max-width: 46ch;
-    line-height: 1.4;
+  .brand .logo-sub{
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--paper-hi);
+    text-align: right;
+    margin-top: 3px;
+  }
+  header.top .secondary{
+    background: transparent;
+    border: 1px solid var(--brass-dim);
+    color: var(--paper-hi);
+    box-shadow: none;
+  }
+  header.top .secondary:hover{
+    background: rgba(245,239,220,0.08);
   }
   button.primary{
     background: var(--stamp);
@@ -352,7 +368,7 @@
 
   @media (max-width: 560px){
     header.top{ padding: 18px 16px 14px; }
-    .brand h1{ font-size: 24px; }
+    .brand .logo-main{ font-size: 28px; }
     main{ padding: 16px 12px 50px; }
     .filters{ padding: 12px; }
     nav.tabs{ padding: 12px 12px 0; }
@@ -365,8 +381,8 @@
 
   <header class="top">
     <div class="brand">
-      <h1>Videogame DB - The Ultimate Project</h1>
-      <p>Tutto ciò che gioco, sto giocando e giocherò!</p>
+      <div class="logo-main">Videogame</div>
+      <div class="logo-sub">DATABASE</div>
     </div>
     <div style="display:flex; gap:8px; align-items:center;">
       <button class="primary" id="btn-add">+ Aggiungi gioco</button>
@@ -861,13 +877,15 @@ function renderStats(){
   const ratings = state.games.map(g=> g.play && Number(g.play.rating)).filter(r=> r>0);
   const avgRating = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : '—';
   const wishlistSpend = state.games.filter(g=>g.wantToBuy && g.wishlistPrice).reduce((s,g)=> s + Number(g.wishlistPrice||0), 0);
+  const librarySpend = state.games.reduce((s,g)=> s + (g.ownership||[]).reduce((s2,o)=> s2 + Number(o.price||0), 0), 0);
 
   document.getElementById('stats').innerHTML = `
     <div class="stat"><span class="n">${totalGames}</span><span class="l">giochi archiviati</span></div>
     <div class="stat"><span class="n">${totalHours}h</span><span class="l">ore totali giocate</span></div>
     <div class="stat"><span class="n">${finishedThisYear}</span><span class="l">finiti nel ${year}</span></div>
     <div class="stat"><span class="n">${avgRating}</span><span class="l">voto medio</span></div>
-    <div class="stat"><span class="n">€${wishlistSpend.toFixed(2)}</span><span class="l">spesa lista desideri</span></div>
+    <div class="stat"><span class="n">€${librarySpend.toFixed(2)}</span><span class="l">costo libreria</span></div>
+    <div class="stat"><span class="n">€${wishlistSpend.toFixed(2)}</span><span class="l">costo wishlist</span></div>
   `;
 }
 
