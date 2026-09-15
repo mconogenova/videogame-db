@@ -297,6 +297,7 @@
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
   .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
   .badge.prenotato{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
+  .badge.abbandonato{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
 
   .card-meta{ font-size: 13px; color: var(--ink-soft); line-height:1.6; }
   .card-meta .row{ display:flex; justify-content:space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 5px; }
@@ -657,9 +658,9 @@ function statusClass(g){
 }
 function starString(rating){
   if(!rating) return '<span class="off">valutazione assente</span>';
-  const full = Math.round(rating);
+  const full = Math.round(rating/2); // scala 0–10 -> 5 stelline, ogni stella = 2 punti
   let out = '';
-  for(let i=0;i<10;i++){ out += i<full ? '★' : '<span class="off">★</span>'; }
+  for(let i=0;i<5;i++){ out += i<full ? '★' : '<span class="off">★</span>'; }
   return out + ' <span style="color:var(--ink-soft); font-size:11.5px;">(' + rating + '/10)</span>';
 }
 
@@ -1102,6 +1103,7 @@ function cardTemplate(g){
   if(isFutureRelease(g)) badges.push(`<span class="badge in-uscita">In uscita</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
   if(isFutureRelease(g) && g.preorder) badges.push(`<span class="badge prenotato">Prenotato</span>`);
+  if(g.status === 'finito' && g.abandoned) badges.push(`<span class="badge abbandonato">Abbandonato</span>`);
 
   const platforms = allPlatformsOf(g);
   const dots = platforms.map(p => `<span class="dot"><i style="background:${hashColor(p)}"></i>${esc(p)}</span>`).join('');
@@ -1246,6 +1248,7 @@ function openDetail(id){
   const sl = statusLabel(g);
   if(sl) badges.push(`<span class="badge ${statusClass(g)}">${sl}</span>`);
   if(g.wantToBuy) badges.push(`<span class="badge comprare">Da comprare</span>`);
+  if(g.status === 'finito' && g.abandoned) badges.push(`<span class="badge abbandonato">Abbandonato</span>`);
 
   dlg.innerHTML = `
     <div class="dialog-head">
@@ -1320,7 +1323,7 @@ function closeConfirm(){ document.getElementById('overlay-confirm').classList.ad
 function blankGame(){
   return {
     id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
-    status:'da-giocare', wantToBuy:false, wishlistPrice:null,
+    status:'da-giocare', wantToBuy:false, wishlistPrice:null, abandoned:false,
     preorder:false, preorderPrice:null, releasePlatforms:[], hype:1,
     play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
     ownership:[], notes:''
@@ -1425,7 +1428,12 @@ function renderFormBody(){
           <option value="finito" ${g.status==='finito'?'selected':''}>Finito</option>
           <option value="" ${!g.status?'selected':''}>Non iniziato / solo in lista desideri</option>
         </select>
-      </div>`}
+      </div>
+      ${g.status === 'finito' ? `
+      <div class="checkbox-row" style="margin-top:8px;">
+        <input type="checkbox" id="f-abandoned" data-field="abandoned" ${g.abandoned?'checked':''}>
+        <label for="f-abandoned">Abbandonato (non completato, ma non ci gioco più)</label>
+      </div>` : ''}`}
     </fieldset>
 
     <fieldset>
@@ -1592,7 +1600,7 @@ function onFormFieldChange(e){
   // singolo 'change'.
   if(t.type === 'date') return;
 
-  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy')){
+  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy' || field === 'status')){
     if(field === 'isInfinite' && val === true){ draft.status = 'in-corso'; }
     renderFormBody();
   }
@@ -1643,6 +1651,9 @@ async function saveDraft(){
     draft.preorder = false;
     draft.preorderPrice = null;
     draft.releasePlatforms = [];
+  }
+  if(draft.status !== 'finito'){
+    draft.abandoned = false;
   }
   const idx = state.games.findIndex(x=>x.id===draft.id);
   const clean = JSON.parse(JSON.stringify(draft));
