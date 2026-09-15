@@ -1581,8 +1581,31 @@ function onFormFieldChange(e){
 
   setPath(draft, field, val);
 
-  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy' || field === 'releaseDate')){
+  // Fix bug date (2/2): con l'anno a 4 cifre, anche digitando UNA sola cifra
+  // il valore risultante è comunque "tecnicamente" una data valida (es. anno
+  // "0002" mentre si sta ancora scrivendo "2026"): niente badInput, ma il
+  // valore è provvisorio e sbagliato. Se a ogni 'change' ridisegnassimo tutto
+  // il form, l'input verrebbe sostituito a metà digitazione con quel valore
+  // provvisorio e l'utente perderebbe il focus, "perdendo" le cifre
+  // successive. Per i campi data rimandiamo quindi l'eventuale ridisegno al
+  // vero termine della digitazione, cioè a quando il campo perde il focus
+  // (vedi onFormFieldBlur/'focusout' in bindGlobalEvents), invece che ad ogni
+  // singolo 'change'.
+  if(t.type === 'date') return;
+
+  if(e.type === 'change' && (field === 'isInfinite' || field === 'wantToBuy')){
     if(field === 'isInfinite' && val === true){ draft.status = 'in-corso'; }
+    renderFormBody();
+  }
+}
+
+function onFormFieldBlur(e){
+  const t = e.target;
+  // Solo ora, a digitazione conclusa, il valore della data è definitivo:
+  // è il momento giusto (e l'unico sicuro) per ridisegnare il form e
+  // aggiornare le sezioni che dipendono dalla data di uscita (es. blocco
+  // prenotazione/"in uscita").
+  if(t.type === 'date' && t.matches('[data-field="releaseDate"]')){
     renderFormBody();
   }
 }
@@ -1641,6 +1664,10 @@ function bindGlobalEvents(){
   const formDlg = document.getElementById('form-dialog');
   formDlg.addEventListener('input', onFormFieldChange);
   formDlg.addEventListener('change', onFormFieldChange);
+  // 'focusout' (a differenza di 'blur') risale nel DOM, quindi funziona con
+  // la delega eventi qui usata su tutto il dialog: serve per il ridisegno
+  // posticipato dei campi data, vedi onFormFieldBlur.
+  formDlg.addEventListener('focusout', onFormFieldBlur);
   formDlg.addEventListener('click', onFormDialogClick);
 
   document.getElementById('tabs').addEventListener('click', e=>{
