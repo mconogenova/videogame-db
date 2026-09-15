@@ -675,26 +675,6 @@ function flameString(hype){
   }
   return `<span class="flames">${out}</span>`;
 }
-const BUY_REASON_LABELS = { fisico:'Fisico', preservazione:'Preservazione' };
-// Se il gioco è in lista desideri ma è già stato giocato (finito/in corso),
-// deduciamo automaticamente il motivo del "recupero": se possiede già una
-// copia fisica o una copia digitale DRM Free non c'è nulla da recuperare;
-// altrimenti (giocato in abbonamento/prestito o con digitale non DRM Free)
-// il motivo presunto è "Preservazione". Un valore impostato a mano in
-// draft.buyReason ha sempre la precedenza su questo calcolo automatico.
-function autoBuyReason(g){
-  if(!g.wantToBuy) return null;
-  const played = g.status === 'finito' || g.status === 'in-corso';
-  if(!played) return null; // non ancora giocato: è un primo acquisto, non un recupero
-  const own = g.ownership || [];
-  if(own.some(o => o.format === 'fisico')) return null;
-  if(own.some(o => o.format === 'digitale' && o.drmFree)) return null;
-  return 'preservazione';
-}
-function buyReasonLabel(g){
-  const code = (g.buyReason && BUY_REASON_LABELS[g.buyReason]) ? g.buyReason : autoBuyReason(g);
-  return BUY_REASON_LABELS[code] || null;
-}
 function ownershipSummary(g){
   const platform = g.play && g.play.platform;
   const list = g.ownership || [];
@@ -745,7 +725,7 @@ function seedData(){
     },
     {
       id: uid(), title:'Starfield', genres:['RPG','Sci-Fi','Open World'], releaseDate:'2023-09-06', isInfinite:false,
-      status:'finito', wantToBuy:true, wishlistPrice:29.99, buyReason:'preservazione', hype:3,
+      status:'finito', wantToBuy:true, wishlistPrice:29.99, hype:3,
       play:{ platform:'Xbox Series X|S', accessType:'gamepass', startDate:'2023-09-10', endDate:'2023-11-02', hours:61, rating:7,
         review:"Esplorazione un po' dispersiva, ma la trama principale mi ha preso più del previsto." },
       ownership:[],
@@ -857,9 +837,9 @@ async function loadGames(){
       state.games = seedData();
       await migrateToSubcollection(state.games);
     }
-    // I giochi già salvati prima dell'introduzione del campo "hype" (e di
-    // "buyReason") non ce l'hanno: li valorizziamo al minimo/vuoto e
-    // salviamo la modifica, così la migrazione avviene una volta sola.
+    // I giochi già salvati prima dell'introduzione del campo "hype" non ce
+    // l'hanno: lo valorizziamo al minimo e salviamo la modifica, così la
+    // migrazione avviene una volta sola.
     await migrateMissingFields(state.games);
   }catch(e){
     console.error('Errore di caricamento dati', e);
@@ -870,14 +850,13 @@ async function loadGames(){
   render();
 }
 
-// Valorizza i campi introdotti dopo la creazione dei dati (hype, buyReason)
-// su tutti i giochi che ne sono ancora privi, e salva solo quelli toccati.
+// Valorizza i campi introdotti dopo la creazione dei dati (hype) su tutti i
+// giochi che ne sono ancora privi, e salva solo quelli toccati.
 async function migrateMissingFields(games){
   const toPersist = [];
   games.forEach(g => {
     let changed = false;
     if(g.hype === undefined || g.hype === null){ g.hype = 1; changed = true; }
-    if(g.buyReason === undefined){ g.buyReason = ''; changed = true; }
     if(changed) toPersist.push(g);
   });
   if(!toPersist.length) return;
@@ -1143,8 +1122,6 @@ function cardTemplate(g){
     rows.push(`<div class="row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>`);
     rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
     rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
-    const reasonLabel = buyReasonLabel(g);
-    if(reasonLabel) rows.push(`<div class="row"><span>Motivo</span><span>${reasonLabel}</span></div>`);
     rows.push(`<div class="row"><span>Hype</span>${flameString(g.hype)}</div>`);
 
   } else if(mode === 'da-giocare'){
@@ -1300,7 +1277,6 @@ function openDetail(id){
       <div class="detail-section">
         <h4>Lista desideri</h4>
         <div class="detail-row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>
-        ${buyReasonLabel(g) ? `<div class="detail-row"><span>Motivo</span><span>${buyReasonLabel(g)}</span></div>` : ''}
         <div class="detail-row"><span>Hype</span><span>${flameString(g.hype)}</span></div>
       </div>` : ''}
 
@@ -1345,7 +1321,7 @@ function closeConfirm(){ document.getElementById('overlay-confirm').classList.ad
 function blankGame(){
   return {
     id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
-    status:'da-giocare', wantToBuy:false, wishlistPrice:null, buyReason:'',
+    status:'da-giocare', wantToBuy:false, wishlistPrice:null,
     preorder:false, preorderPrice:null, releasePlatforms:[], hype:1,
     play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
     ownership:[], notes:''
@@ -1516,15 +1492,6 @@ function renderFormBody(){
       <div class="field">
         <label>Prezzo target (€)</label>
         <input type="number" min="0" step="0.01" data-field="wishlistPrice" value="${g.wishlistPrice!=null?g.wishlistPrice:''}">
-      </div>
-      <div class="field">
-        <label>Motivo del recupero (se il gioco è già stato giocato)</label>
-        <select data-field="buyReason">
-          <option value="" ${!g.buyReason?'selected':''}>Automatico (dedotto dalle copie possedute)</option>
-          <option value="fisico" ${g.buyReason==='fisico'?'selected':''}>Forza: vuole anche una copia fisica</option>
-          <option value="preservazione" ${g.buyReason==='preservazione'?'selected':''}>Forza: Preservazione (DRM non attivo / abbonamento / prestito)</option>
-        </select>
-        <p class="hint" style="margin-bottom:0;">Lasciando "Automatico", il motivo viene dedotto da sé: se non hai ancora una copia fisica o DRM Free ed è un gioco già giocato, verrà mostrato "Preservazione".</p>
       </div>` : ''}
     </fieldset>
 
@@ -1532,7 +1499,7 @@ function renderFormBody(){
     <fieldset>
       <legend>Hype</legend>
       <div class="field">
-        <label>Qual è il livello d''interesse?</label>
+        <label>Quanta voglia hai di giocarlo?</label>
         <select data-field="hype">
           <option value="1" ${(!g.hype || g.hype==1)?'selected':''}>${HYPE_LABELS[1]}</option>
           <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
@@ -1541,6 +1508,7 @@ function renderFormBody(){
           <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
         </select>
       </div>
+      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita" e "Da comprare".</p>
     </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
