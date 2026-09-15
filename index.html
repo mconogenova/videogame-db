@@ -1532,7 +1532,7 @@ function renderFormBody(){
     <fieldset>
       <legend>Hype</legend>
       <div class="field">
-        <label>Quanta voglia hai di giocarlo?</label>
+        <label>Qual è il livello d''interesse?</label>
         <select data-field="hype">
           <option value="1" ${(!g.hype || g.hype==1)?'selected':''}>${HYPE_LABELS[1]}</option>
           <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
@@ -1541,7 +1541,6 @@ function renderFormBody(){
           <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
         </select>
       </div>
-      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita" e "Da comprare".</p>
     </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
