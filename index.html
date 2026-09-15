@@ -1552,6 +1552,19 @@ function onFormFieldChange(e){
   if(!t.matches('[data-field]')) return;
   const field = t.dataset.field;
 
+  // Fix bug date: mentre si digitano le cifre di un input type="date" (es. si
+  // sta riscrivendo solo l'anno), finché la data non è completa il browser
+  // segnala validity.badInput=true e restituisce value==='' anche se l'utente
+  // NON ha svuotato il campo, ha solo finito di scrivere. Se in quel momento
+  // parte un evento 'change' (basta che il focus si sposti un attimo, cosa
+  // frequente su mobile), senza questo controllo salveremmo '' nella bozza e
+  // subito dopo ridisegneremmo l'intero form: l'input verrebbe sostituito con
+  // uno vuoto, "azzerando" la data a metà digitazione. Qui ignoriamo l'evento
+  // finché l'input non è completo (o è stato svuotato davvero).
+  if(t.type === 'date' && t.validity && t.validity.badInput){
+    return;
+  }
+
   if(field === '__genres'){
     draft.genres = t.value.split(',').map(s=>s.trim()).filter(Boolean);
     return;
