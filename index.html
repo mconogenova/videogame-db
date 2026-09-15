@@ -100,27 +100,27 @@
     transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
   header.top .secondary{
-    background: transparent;
-    border: 1px solid var(--brass-dim);
-    color: var(--paper-hi);
-    box-shadow: none;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    box-shadow: var(--shadow-flat-sm);
     border-radius: 8px;
   }
   header.top .secondary:hover{
-    background: rgba(245,239,220,0.08);
+    background: var(--paper-hi);
     transform: translate(-2px,-2px);
     box-shadow: 6px 6px 0 rgba(0,0,0,0.25);
   }
   header.top .secondary:active{ transform: translate(0,0); box-shadow: 1px 1px 0 rgba(0,0,0,0.25); }
   header.top .primary{
-    background: transparent;
+    background: var(--paper);
     border: 1px solid var(--stamp);
-    color: var(--paper-hi);
-    box-shadow: none;
+    color: var(--stamp);
+    box-shadow: var(--shadow-flat-sm);
     border-radius: 8px;
   }
   header.top .primary:hover{
-    background: rgba(245,239,220,0.08);
+    background: var(--paper-hi);
     transform: translate(-2px,-2px);
     box-shadow: 6px 6px 0 rgba(0,0,0,0.25);
   }
@@ -665,7 +665,7 @@ function starString(rating){
 }
 
 /* ---- Hype (fiammelle) ---- */
-const HYPE_LABELS = { 1:'Poco interesse', 2:'Interesse minore', 3:'Interesse concreto', 4:'Molto interessato', 5:"Principale interesse" };
+const HYPE_LABELS = { 1:'Poco interesse', 2:'Curiosità', 3:'Interesse concreto', 4:'Molto atteso', 5:"Non vedo l'ora" };
 const FLAME_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c1.2 3.1-2.1 4.2-2.1 7.2a3.1 3.1 0 1 0 6.2 0c0-1-.4-2-1-2.9 2.1 1.3 3.9 3.9 3.9 6.9a7 7 0 1 1-14 0c0-5.3 4.1-7.2 4.1-11.2.9.9 1.9 1.1 2.9 0z"/></svg>';
 function flameString(hype){
   const n = Number(hype) || 0;
@@ -1499,7 +1499,7 @@ function renderFormBody(){
     <fieldset>
       <legend>Hype</legend>
       <div class="field">
-        <label>Quanto interesse hai?</label>
+        <label>Quanta voglia hai di giocarlo?</label>
         <select data-field="hype">
           <option value="1" ${(!g.hype || g.hype==1)?'selected':''}>${HYPE_LABELS[1]}</option>
           <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
@@ -1508,7 +1508,7 @@ function renderFormBody(){
           <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
         </select>
       </div>
-  
+      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita" e "Da comprare".</p>
     </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
