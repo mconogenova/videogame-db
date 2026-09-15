@@ -252,8 +252,8 @@
   /* ---------- Card ---------- */
   .card{
     background: var(--paper-hi);
-    border: 1px solid var(--ink);
-    border-radius: var(--radius) var(--radius) 0 0;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
     box-shadow: var(--shadow-flat);
     padding: 16px 16px 14px;
     cursor: pointer;
@@ -264,6 +264,20 @@
     gap: 10px;
   }
   .card:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(43,36,32,0.22); }
+
+  /* Cornice colorata in base allo stato della card (coerente coi badge) */
+  .card.b-in-corso, .card.b-infinito{ border-color: var(--stamp); box-shadow: 4px 4px 0 rgba(156,59,46,0.18); }
+  .card.b-in-corso:hover, .card.b-infinito:hover{ box-shadow: 6px 6px 0 rgba(156,59,46,0.3); }
+  .card.b-finito{ border-color: var(--sage); box-shadow: 4px 4px 0 rgba(82,101,74,0.18); }
+  .card.b-finito:hover{ box-shadow: 6px 6px 0 rgba(82,101,74,0.3); }
+  .card.b-da-giocare{ border-color: var(--slate); box-shadow: 4px 4px 0 rgba(62,82,102,0.18); }
+  .card.b-da-giocare:hover{ box-shadow: 6px 6px 0 rgba(62,82,102,0.3); }
+  .card.b-comprare{ border-color: var(--brass); box-shadow: 4px 4px 0 rgba(147,115,46,0.18); }
+  .card.b-comprare:hover{ box-shadow: 6px 6px 0 rgba(147,115,46,0.3); }
+  .card.b-in-uscita{ border-color: var(--ink-soft); box-shadow: 4px 4px 0 rgba(91,82,69,0.18); }
+  .card.b-in-uscita:hover{ box-shadow: 6px 6px 0 rgba(91,82,69,0.3); }
+
+  .flames{ display:inline-flex; gap:2px; align-items:center; }
 
   .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .card-title{ font-family: var(--serif); font-size: 18px; font-weight:700; line-height:1.25; margin:0; }
@@ -644,10 +658,51 @@ function statusClass(g){
 }
 function starString(rating){
   if(!rating) return '<span class="off">valutazione assente</span>';
-  const full = Math.round(rating/2);
+  const full = Math.round(rating);
   let out = '';
-  for(let i=0;i<5;i++){ out += i<full ? '★' : '<span class="off">★</span>'; }
+  for(let i=0;i<10;i++){ out += i<full ? '★' : '<span class="off">★</span>'; }
   return out + ' <span style="color:var(--ink-soft); font-size:11.5px;">(' + rating + '/10)</span>';
+}
+
+/* ---- Hype (fiammelle) ---- */
+const HYPE_LABELS = { 1:'Poco interesse', 2:'Curiosità', 3:'Interesse concreto', 4:'Molto atteso', 5:"Non vedo l'ora" };
+const FLAME_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c1.2 3.1-2.1 4.2-2.1 7.2a3.1 3.1 0 1 0 6.2 0c0-1-.4-2-1-2.9 2.1 1.3 3.9 3.9 3.9 6.9a7 7 0 1 1-14 0c0-5.3 4.1-7.2 4.1-11.2.9.9 1.9 1.1 2.9 0z"/></svg>';
+function flameString(hype){
+  const n = Number(hype) || 0;
+  let out = '';
+  for(let i=0;i<5;i++){
+    out += `<span style="color:${i<n ? 'var(--brass)' : 'var(--line)'};">${FLAME_SVG}</span>`;
+  }
+  return `<span class="flames">${out}</span>`;
+}
+const BUY_REASON_LABELS = { fisico:'Fisico', preservazione:'Preservazione' };
+// Se il gioco è in lista desideri ma è già stato giocato (finito/in corso),
+// deduciamo automaticamente il motivo del "recupero": se possiede già una
+// copia fisica o una copia digitale DRM Free non c'è nulla da recuperare;
+// altrimenti (giocato in abbonamento/prestito o con digitale non DRM Free)
+// il motivo presunto è "Preservazione". Un valore impostato a mano in
+// draft.buyReason ha sempre la precedenza su questo calcolo automatico.
+function autoBuyReason(g){
+  if(!g.wantToBuy) return null;
+  const played = g.status === 'finito' || g.status === 'in-corso';
+  if(!played) return null; // non ancora giocato: è un primo acquisto, non un recupero
+  const own = g.ownership || [];
+  if(own.some(o => o.format === 'fisico')) return null;
+  if(own.some(o => o.format === 'digitale' && o.drmFree)) return null;
+  return 'preservazione';
+}
+function buyReasonLabel(g){
+  const code = (g.buyReason && BUY_REASON_LABELS[g.buyReason]) ? g.buyReason : autoBuyReason(g);
+  return BUY_REASON_LABELS[code] || null;
+}
+function ownershipSummary(g){
+  const platform = g.play && g.play.platform;
+  const list = g.ownership || [];
+  const entry = list.find(o => o.platform === platform) || list[0];
+  if(!entry) return null;
+  let label = entry.format === 'fisico' ? 'Fisico' : 'Digitale';
+  if(entry.format === 'digitale' && entry.drmFree) label += ' · DRM Free';
+  return label;
 }
 function allPlatformsOf(g){
   const set = new Set();
@@ -690,7 +745,7 @@ function seedData(){
     },
     {
       id: uid(), title:'Starfield', genres:['RPG','Sci-Fi','Open World'], releaseDate:'2023-09-06', isInfinite:false,
-      status:'finito', wantToBuy:true, wishlistPrice:29.99,
+      status:'finito', wantToBuy:true, wishlistPrice:29.99, buyReason:'preservazione', hype:3,
       play:{ platform:'Xbox Series X|S', accessType:'gamepass', startDate:'2023-09-10', endDate:'2023-11-02', hours:61, rating:7,
         review:"Esplorazione un po' dispersiva, ma la trama principale mi ha preso più del previsto." },
       ownership:[],
@@ -705,7 +760,8 @@ function seedData(){
     },
     {
       id: uid(), title:'Hollow Knight: Silksong', genres:['Metroidvania'], releaseDate:'2025-09-04', isInfinite:false,
-      status:null, wantToBuy:true, wishlistPrice:19.99,
+      status:null, wantToBuy:true, wishlistPrice:19.99, hype:4,
+      preorder:false, preorderPrice:null, releasePlatforms:['PC','Nintendo Switch'],
       play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
       ownership:[],
       notes:'Aspetto un saldo prima di prenderlo.'
@@ -801,6 +857,10 @@ async function loadGames(){
       state.games = seedData();
       await migrateToSubcollection(state.games);
     }
+    // I giochi già salvati prima dell'introduzione del campo "hype" (e di
+    // "buyReason") non ce l'hanno: li valorizziamo al minimo/vuoto e
+    // salviamo la modifica, così la migrazione avviene una volta sola.
+    await migrateMissingFields(state.games);
   }catch(e){
     console.error('Errore di caricamento dati', e);
     state.games = [];
@@ -808,6 +868,30 @@ async function loadGames(){
   }
   state.loaded = true;
   render();
+}
+
+// Valorizza i campi introdotti dopo la creazione dei dati (hype, buyReason)
+// su tutti i giochi che ne sono ancora privi, e salva solo quelli toccati.
+async function migrateMissingFields(games){
+  const toPersist = [];
+  games.forEach(g => {
+    let changed = false;
+    if(g.hype === undefined || g.hype === null){ g.hype = 1; changed = true; }
+    if(g.buyReason === undefined){ g.buyReason = ''; changed = true; }
+    if(changed) toPersist.push(g);
+  });
+  if(!toPersist.length) return;
+  try{
+    const CHUNK = 450;
+    for(let i=0; i<toPersist.length; i+=CHUNK){
+      const batch = writeBatch(db);
+      toPersist.slice(i, i+CHUNK).forEach(g => batch.set(gameDocRef(g.id), g));
+      await batch.commit();
+    }
+  }catch(e){
+    console.error('Errore di migrazione del campo hype', e);
+    showSaveError('Non sono riuscito a salvare la migrazione del campo Hype su alcuni giochi. I dati restano corretti in locale: riprova più tardi.');
+  }
 }
 
 // Scrive ogni gioco come documento separato nella sottocollezione (a lotti da
@@ -1017,6 +1101,22 @@ function renderFilterOptions(){
 }
   
 
+// Determina la "modalità" con cui disegnare la card: coincide con la tab
+// attiva, tranne che in "Tutti" dove va dedotta dal singolo gioco.
+function cardMode(g){
+  const tab = state.activeTab;
+  if(tab !== 'tutti') return tab;
+  if(isFutureRelease(g)) return 'in-uscita';
+  if(g.isInfinite) return 'infinito';
+  if(g.status) return g.status;
+  if(g.wantToBuy) return 'da-comprare';
+  return 'da-giocare';
+}
+const BORDER_CLASS_BY_MODE = {
+  'in-corso':'b-in-corso', 'infinito':'b-infinito', 'finito':'b-finito',
+  'da-giocare':'b-da-giocare', 'in-uscita':'b-in-uscita', 'da-comprare':'b-comprare'
+};
+
 function cardTemplate(g){
   const badges = [];
   const sl = statusLabel(g);
@@ -1028,38 +1128,68 @@ function cardTemplate(g){
   const platforms = allPlatformsOf(g);
   const dots = platforms.map(p => `<span class="dot"><i style="background:${hashColor(p)}"></i>${esc(p)}</span>`).join('');
 
-  const playedLine = g.play && g.play.platform
-    ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
-    : '—';
-  const hours = (g.play && g.play.hours) ? g.play.hours + ' h' : '—';
+  const mode = cardMode(g);
+  const borderClass = BORDER_CLASS_BY_MODE[mode] || 'b-da-giocare';
+  const rows = [];
 
-  // Nelle schede ordinate per data di uscita mostriamo la data in card,
-  // per rendere leggibile l'ordinamento a colpo d'occhio.
-  const showReleaseRow = state.activeTab === 'in-uscita' || state.activeTab === 'da-giocare';
-  const releaseRow = showReleaseRow
-    ? `<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`
-    : '';
+  if(mode === 'in-uscita'){
+    rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
+    rows.push(`<div class="row"><span>Piattaforme</span><span>${esc((g.releasePlatforms||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Costo</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Prenotato: <b style="color:var(--ink);">${g.preorder?'Sì':'No'}</b></span>${flameString(g.hype)}</div>`);
 
-  // Sulla tab "In uscita" mostriamo anche le piattaforme annunciate e il
-  // costo di prenotazione/prezzo previsto, oltre allo stato di prenotazione (badge).
-  const upcomingRows = state.activeTab === 'in-uscita'
-    ? `<div class="row"><span>Piattaforme</span><span>${esc((g.releasePlatforms||[]).join(', ')) || '—'}</span></div>
-       <div class="row"><span>Costo</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>`
-    : '';
+  } else if(mode === 'da-comprare'){
+    rows.push(`<div class="row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
+    const reasonLabel = buyReasonLabel(g);
+    if(reasonLabel) rows.push(`<div class="row"><span>Motivo</span><span>${reasonLabel}</span></div>`);
+    rows.push(`<div class="row"><span>Hype</span>${flameString(g.hype)}</div>`);
+
+  } else if(mode === 'da-giocare'){
+    const ownedPlatforms = (g.ownership||[]).map(o=>o.platform).filter(Boolean);
+    rows.push(`<div class="row"><span>Posseduto su</span><span>${esc(ownedPlatforms.join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
+
+  } else if(mode === 'in-corso'){
+    const playedLine = g.play && g.play.platform
+      ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
+      : '—';
+    rows.push(`<div class="row"><span>In gioco su</span><span>${playedLine}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Posseduto</span><span>${ownershipSummary(g) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Iniziato il</span><span>${formatDate(g.play && g.play.startDate)}</span></div>`);
+
+  } else if(mode === 'finito'){
+    const playedLine = g.play && g.play.platform
+      ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
+      : '—';
+    rows.push(`<div class="row"><span>Giocato su</span><span>${playedLine}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Periodo</span><span>${formatDate(g.play && g.play.startDate)} – ${formatDate(g.play && g.play.endDate)}</span></div>`);
+    rows.push(`<div class="row"><span>Ore</span><span>${(g.play && g.play.hours) ? g.play.hours + ' h' : '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>`);
+
+  } else { // infinito (o fallback)
+    const playedLine = g.play && g.play.platform
+      ? esc(g.play.platform) + (g.play.accessType && g.play.accessType!=='owned' ? ' · ' + accessLabel(g.play.accessType) : '')
+      : '—';
+    rows.push(`<div class="row"><span>Giocato su</span><span>${playedLine}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Ore</span><span>${(g.play && g.play.hours) ? g.play.hours + ' h' : '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>`);
+  }
 
   return `
-    <div class="card" data-id="${g.id}">
+    <div class="card ${borderClass}" data-id="${g.id}">
       <div class="card-top">
         <h3 class="card-title">${esc(g.title)}</h3>
       </div>
       ${badges.length ? `<div class="badges-row">${badges.join('')}</div>` : ''}
       <div class="card-meta">
-        ${releaseRow}
-        <div class="row"><span>Giocato su</span><span>${playedLine}</span></div>
-        <div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>
-        ${upcomingRows}
-        <div class="row"><span>Ore</span><span>${hours}</span></div>
-        <div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>
+        ${rows.join('')}
       </div>
       ${dots ? `<div class="card-tags">${dots}</div>` : ''}
     </div>
@@ -1170,6 +1300,8 @@ function openDetail(id){
       <div class="detail-section">
         <h4>Lista desideri</h4>
         <div class="detail-row"><span>Prezzo desiderato</span><span>${g.wishlistPrice ? '€'+Number(g.wishlistPrice).toFixed(2) : '—'}</span></div>
+        ${buyReasonLabel(g) ? `<div class="detail-row"><span>Motivo</span><span>${buyReasonLabel(g)}</span></div>` : ''}
+        <div class="detail-row"><span>Hype</span><span>${flameString(g.hype)}</span></div>
       </div>` : ''}
 
       ${isFutureRelease(g) ? `
@@ -1178,6 +1310,7 @@ function openDetail(id){
         <div class="detail-row"><span>Prenotato</span><span>${g.preorder ? 'Sì' : 'No'}</span></div>
         <div class="detail-row"><span>Costo prenotazione / previsto</span><span>${g.preorderPrice!=null && g.preorderPrice!=='' ? '€'+Number(g.preorderPrice).toFixed(2) : '—'}</span></div>
         <div class="detail-row"><span>Disponibilità / Piattaforma Acquisto</span><span>${esc((g.releasePlatforms||[]).join(', '))||'—'}</span></div>
+        <div class="detail-row"><span>Hype</span><span>${flameString(g.hype)}</span></div>
       </div>` : ''}
 
       ${g.notes ? `<div class="detail-section"><h4>Note</h4><p style="font-size:13.5px;line-height:1.5;">${esc(g.notes)}</p></div>` : ''}
@@ -1212,8 +1345,8 @@ function closeConfirm(){ document.getElementById('overlay-confirm').classList.ad
 function blankGame(){
   return {
     id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
-    status:'da-giocare', wantToBuy:false, wishlistPrice:null,
-    preorder:false, preorderPrice:null, releasePlatforms:[],
+    status:'da-giocare', wantToBuy:false, wishlistPrice:null, buyReason:'',
+    preorder:false, preorderPrice:null, releasePlatforms:[], hype:1,
     play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
     ownership:[], notes:''
   };
@@ -1383,8 +1516,33 @@ function renderFormBody(){
       <div class="field">
         <label>Prezzo target (€)</label>
         <input type="number" min="0" step="0.01" data-field="wishlistPrice" value="${g.wishlistPrice!=null?g.wishlistPrice:''}">
+      </div>
+      <div class="field">
+        <label>Motivo del recupero (se il gioco è già stato giocato)</label>
+        <select data-field="buyReason">
+          <option value="" ${!g.buyReason?'selected':''}>Automatico (dedotto dalle copie possedute)</option>
+          <option value="fisico" ${g.buyReason==='fisico'?'selected':''}>Forza: vuole anche una copia fisica</option>
+          <option value="preservazione" ${g.buyReason==='preservazione'?'selected':''}>Forza: Preservazione (DRM non attivo / abbonamento / prestito)</option>
+        </select>
+        <p class="hint" style="margin-bottom:0;">Lasciando "Automatico", il motivo viene dedotto da sé: se non hai ancora una copia fisica o DRM Free ed è un gioco già giocato, verrà mostrato "Preservazione".</p>
       </div>` : ''}
     </fieldset>
+
+    ${(g._isNew || isFutureRelease(g) || g.wantToBuy) ? `
+    <fieldset>
+      <legend>Hype</legend>
+      <div class="field">
+        <label>Quanta voglia hai di giocarlo?</label>
+        <select data-field="hype">
+          <option value="1" ${(!g.hype || g.hype==1)?'selected':''}>${HYPE_LABELS[1]}</option>
+          <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
+          <option value="3" ${g.hype==3?'selected':''}>${HYPE_LABELS[3]}</option>
+          <option value="4" ${g.hype==4?'selected':''}>${HYPE_LABELS[4]}</option>
+          <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
+        </select>
+      </div>
+      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita" e "Da comprare".</p>
+    </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
     <fieldset>
@@ -1438,6 +1596,7 @@ function onFormFieldChange(e){
   let val;
   if(t.type === 'checkbox') val = t.checked;
   else if(t.type === 'number') val = t.value==='' ? 0 : Number(t.value);
+  else if(field === 'hype') val = Number(t.value);
   else val = t.value;
 
   setPath(draft, field, val);
