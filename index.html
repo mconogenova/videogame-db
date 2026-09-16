@@ -1100,11 +1100,19 @@ function sortOptionsFor(tabId){
     { value:'name-asc', label:'Nome (A - Z)' },
     { value:'name-desc', label:'Nome (Z - A)' }
   ];
-  if(tabId === 'in-corso') return base;
-  return base.concat([
+  const options = tabId === 'in-corso' ? base.slice() : base.concat([
     { value:'rating-desc', label:'Voto (più alto)' },
     { value:'rating-asc', label:'Voto (più basso)' }
   ]);
+  options.push(
+    { value:'release-desc', label:'Data uscita (più recente)' },
+    { value:'release-asc', label:'Data uscita (meno recente)' },
+    { value:'start-desc', label:'Data inizio (più recente)' },
+    { value:'start-asc', label:'Data inizio (meno recente)' },
+    { value:'end-desc', label:'Data fine (più recente)' },
+    { value:'end-asc', label:'Data fine (meno recente)' }
+  );
+  return options;
 }
 function matchesTabFilters(g, tabId){
   const tf = getTabFilters(tabId);
@@ -1149,6 +1157,25 @@ function belongsToTab(g, tabId){
   if(g.isInfinite) return false; // infinite games live only in their own tab (+ Tutti / Da comprare)
   return g.status === tabId;
 }
+// Estrae la data richiesta (releaseDate sta sul gioco, startDate/endDate
+// dentro play) solo se valida; altrimenti null, così chi non ce l'ha finisce
+// sempre in fondo indipendentemente dal verso scelto. Le date sono stringhe
+// 'YYYY-MM-DD': il confronto lessicografico è già cronologicamente corretto.
+function dateValueOf(g, field){
+  const raw = field === 'releaseDate' ? g.releaseDate : (g.play && g.play[field]);
+  return raw && !isNaN(new Date(raw).getTime()) ? raw : null;
+}
+function byDateField(field, dir){
+  return (a,b)=>{
+    const da = dateValueOf(a, field), db = dateValueOf(b, field);
+    if(da == null && db == null) return 0;
+    if(da == null) return 1;
+    if(db == null) return -1;
+    if(da === db) return 0;
+    const cmp = da < db ? -1 : 1;
+    return dir === 'asc' ? cmp : -cmp;
+  };
+}
 function sortByUserChoice(list, tabId){
   const sort = getTabFilters(tabId).sort;
   const sorted = list.slice();
@@ -1158,6 +1185,18 @@ function sortByUserChoice(list, tabId){
     sorted.sort((a,b)=> (Number(b.play && b.play.rating) || 0) - (Number(a.play && a.play.rating) || 0));
   } else if(sort === 'rating-asc'){
     sorted.sort((a,b)=> (Number(a.play && a.play.rating) || 0) - (Number(b.play && b.play.rating) || 0));
+  } else if(sort === 'release-desc'){
+    sorted.sort(byDateField('releaseDate','desc'));
+  } else if(sort === 'release-asc'){
+    sorted.sort(byDateField('releaseDate','asc'));
+  } else if(sort === 'start-desc'){
+    sorted.sort(byDateField('startDate','desc'));
+  } else if(sort === 'start-asc'){
+    sorted.sort(byDateField('startDate','asc'));
+  } else if(sort === 'end-desc'){
+    sorted.sort(byDateField('endDate','desc'));
+  } else if(sort === 'end-asc'){
+    sorted.sort(byDateField('endDate','asc'));
   } else {
     sorted.sort((a,b)=> (a.title||'').localeCompare(b.title||'', 'it', { sensitivity:'base' })); // name-asc (default)
   }
@@ -1614,7 +1653,6 @@ function renderFormShell(){
   dlg.innerHTML = `
     <div class="dialog-head">
       <h2>${draft._isNew ? 'Aggiungi gioco' : 'Modifica gioco'}</h2>
-      <button data-action="close">&times;</button>
     </div>
     <div class="dialog-body" id="form-body"></div>
     <div class="dialog-foot">
@@ -2029,7 +2067,9 @@ function bindGlobalEvents(){
 
   // click outside dialog closes overlay
   document.getElementById('overlay-detail').addEventListener('click', e=>{ if(e.target.id==='overlay-detail') closeDetail(); });
-  document.getElementById('overlay-form').addEventListener('click', e=>{ if(e.target.id==='overlay-form') closeForm(); });
+  // Il form di inserimento/modifica NON si chiude cliccando fuori: si esce
+  // solo con il pulsante "Annulla", per evitare di perdere per sbaglio
+  // i dati inseriti con un tap accidentale sullo sfondo.
   document.getElementById('overlay-confirm').addEventListener('click', e=>{ if(e.target.id==='overlay-confirm') closeConfirm(); });
 
   document.getElementById('btn-logout').addEventListener('click', ()=> signOut(auth));
