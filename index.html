@@ -19,6 +19,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barriecito&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+
+<!-- Icone (lente di ricerca, freccia, stelle, fiammelle…) usate dalla barra filtri -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont/dist/tabler-icons.min.css">
 <style>
   :root{
     --paper: #EAE2CA;
@@ -37,6 +40,8 @@
     --slate: #3E5266;
     --slate-dim: #86A0B4;
     --line: rgba(43,36,32,0.18);
+    --border: rgba(43,36,32,0.18);
+    --border-strong: rgba(43,36,32,0.4);
     --shadow-flat: 4px 4px 0 rgba(43,36,32,0.18);
     --shadow-flat-sm: 3px 3px 0 rgba(43,36,32,0.16);
     --radius: 3px;
@@ -158,69 +163,74 @@
   .stat .n{ font-family: var(--mono); font-size: 19px; font-weight: 700; display:block; }
   .stat .l{ font-size: 11.5px; color: var(--brass-dim); margin-top:2px; }
 
-  /* ---------- Tab rail ---------- */
-  nav.tabs{
-    display:flex;
-    gap: 6px;
-    background: var(--wood);
-    padding: 14px 24px 0;
-    flex-wrap: wrap;
+  /* ---------- Barra filtri "per scheda" ---------- */
+  .filterbar{ background: var(--wood); }
+  .filterbar .tabrow{
+    display:flex; gap:4px; background: var(--wood);
+    padding: 14px 24px 0; overflow-x:auto;
   }
-  nav.tabs button{
-    background: var(--wood-dark);
-    color: var(--brass-dim);
-    border: none;
-    border-radius: var(--radius) var(--radius) 0 0;
-    padding: 10px 16px 12px;
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    top: 2px;
+  .filterbar .tabbtn{
+    background: var(--wood-dark); color: var(--brass-dim); border:none;
+    font-family: var(--sans); font-size:14px; font-weight:600;
+    padding: 10px 16px 12px; border-radius: var(--radius) var(--radius) 0 0;
+    cursor:pointer; white-space:nowrap; position:relative; top:2px;
   }
-  nav.tabs button .count{
-    font-family: var(--mono);
-    font-size: 11.5px;
-    opacity: 0.75;
-    margin-left: 6px;
-  }
-  nav.tabs button.active{
-    background: var(--paper);
-    color: var(--ink);
-    top: 0;
-  }
-  nav.tabs button.active .count{ opacity: 0.55; }
+  .filterbar .tabbtn .count{ font-family: var(--mono); font-size:11.5px; opacity:.75; margin-left:6px; }
+  .filterbar .tabbtn.on{ background: var(--paper); color: var(--ink); top:0; }
+  .filterbar .tabbtn.on .count{ opacity:.55; }
 
-  /* ---------- Filter slip ---------- */
-  .filters{
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-    padding: 14px 24px;
-    display:flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items:center;
+  .filterbar .bar{ background: var(--paper); padding:14px 24px; border-bottom: 1px solid var(--line); }
+  .filterbar .row1{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .filterbar .searchwrap{ flex:1 1 200px; position:relative; }
+  .filterbar .searchwrap i{ position:absolute; right:11px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--ink-soft); pointer-events:none; }
+  .filterbar .searchwrap input{
+    width:100%; padding:9px 34px 9px 11px; border:1px solid var(--border-strong); border-radius:var(--radius);
+    background: var(--paper-hi); color: var(--ink); font-family: var(--sans); font-size:14px; box-sizing:border-box;
   }
-  .filters input[type="text"], .filters select{
-    background: var(--paper-hi);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 8px 10px;
-    font-family: var(--sans);
-    font-size: 13.5px;
-    color: var(--ink);
+  .filterbar select.sortsel{
+    border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--paper-hi);
+    color:var(--ink); font-family:var(--sans); font-size:13.5px; padding:9px 8px;
   }
-  .filters input[type="text"]{ min-width: 200px; flex: 1 1 200px; }
-  .filters .clear-filters{
-    background: none;
-    border: none;
-    color: var(--ink-soft);
-    text-decoration: underline;
-    font-size: 13px;
-    cursor: pointer;
-    padding: 4px;
+  .filterbar .filtbtn{
+    display:flex; align-items:center; gap:6px; background:var(--paper-hi); border:1px solid var(--border-strong);
+    border-radius:var(--radius); padding:9px 13px; color:var(--ink); font-family:var(--sans); font-size:13.5px;
+    font-weight:600; cursor:pointer; white-space:nowrap;
   }
+  .filterbar .filtbtn i.chev{ transition: transform .15s; }
+  .filterbar .filtbtn.open i.chev{ transform: rotate(180deg); }
+  .filterbar .filter-badge{
+    background: var(--stamp); color: var(--paper-hi); border-radius:10px; font-size:10.5px;
+    padding:1px 6px; font-weight:600;
+  }
+  .filterbar .chips{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px; }
+  .filterbar .chip{
+    display:flex; align-items:center; gap:5px; background:var(--brass-dim); color:var(--wood-dark);
+    font-size:12px; font-weight:600; padding:5px 7px 5px 10px; border-radius:12px;
+  }
+  .filterbar .chip i{ cursor:pointer; font-size:14px; }
+  .filterbar .clear-filters{
+    background:none; border:none; color:var(--ink-soft); text-decoration:underline;
+    font-family: var(--sans); font-size:12.5px; cursor:pointer; padding:4px;
+  }
+  .filterbar .panel{ display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-strong); flex-direction:column; gap:14px; }
+  .filterbar .panel.open{ display:flex; }
+  .filterbar .group label{
+    display:block; font-size:11px; color:var(--ink-soft); font-weight:600;
+    margin-bottom:7px; text-transform:uppercase; letter-spacing:.04em;
+  }
+  .filterbar .optrow{ display:flex; flex-wrap:wrap; gap:7px; }
+  .filterbar .opt{
+    background:var(--paper-hi); border:1px solid var(--border-strong); border-radius:5px;
+    padding:7px 11px; font-family: var(--sans); font-size:12.5px; color:var(--ink); cursor:pointer;
+  }
+  .filterbar .opt.on{ background:var(--stamp); border-color:var(--stamp); color:var(--paper-hi); }
+  .filterbar .opt.iconopt{ padding:7px 12px; display:flex; align-items:center; }
+  .filterbar .opt.iconopt i{ font-size:16px; color:inherit; }
+  .filterbar select.groupsel, .filterbar input.yearinput{
+    border:1px solid var(--border-strong); border-radius:5px; background:var(--paper-hi);
+    color:var(--ink); font-family: var(--sans); font-size:14px; padding:7px 9px;
+  }
+  .filterbar input.yearinput{ width:110px; }
 
   /* ---------- Main + grid ---------- */
   main{ flex:1; padding: 22px 24px 60px; }
@@ -464,8 +474,8 @@
     header.top{ padding: 18px 16px 14px; }
     .brand .logo-main{ font-size: 28px; }
     main{ padding: 16px 12px 50px; }
-    .filters{ padding: 12px; }
-    nav.tabs{ padding: 12px 12px 0; }
+    .filterbar .bar{ padding: 12px; }
+    .filterbar .tabrow{ padding: 12px 12px 0; }
     .field-row{ flex-direction: column; }
   }
 </style>
@@ -486,25 +496,24 @@
 
   <div class="stats" id="stats"></div>
 
-  <nav class="tabs" id="tabs"></nav>
-
-  <div class="filters">
-    <input type="text" id="filter-search" placeholder="Cerca per titolo…">
-    <select id="filter-platform"><option value="">Tutte le piattaforme</option></select>
-    <select id="filter-genre"><option value="">Tutti i generi</option></select>
-  <!-- NUOVO MENU DI ORDINAMENTO -->
-    <select id="filter-sort">
-      <option value="name-asc">Nome (A - Z)</option>
-      <option value="name-desc">Nome (Z - A)</option>
-      <option value="rating-desc">Voto (Più alto)</option>
-      <option value="rating-asc">Voto (Più basso)</option>
-    </select>
-    <select id="filter-buyplayed" style="display:none;">
-      <option value="">Tutti (da comprare)</option>
-      <option value="played">Già giocati</option>
-      <option value="not-played">Non ancora giocati</option>
-    </select>
-    <button class="clear-filters" id="clear-filters">Azzera filtri</button>
+  <div class="filterbar">
+    <div class="tabrow" id="tabs"></div>
+    <div class="bar">
+      <div class="row1">
+        <div class="searchwrap">
+          <input type="text" id="filter-search" placeholder="Cerca per titolo…">
+          <i class="ti ti-search" aria-hidden="true"></i>
+        </div>
+        <select class="sortsel" id="filter-sort"></select>
+        <button class="filtbtn" id="filtBtn" type="button">
+          <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>Filtri
+          <span class="filter-badge" id="filter-badge" style="display:none;">0</span>
+          <i class="ti ti-chevron-down chev" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="chips" id="filter-chips"></div>
+      <div class="panel" id="filter-panel"></div>
+    </div>
   </div>
 
   <main>
@@ -700,6 +709,41 @@ function allGenresInLibrary(){
   state.games.forEach(g => (g.genres||[]).forEach(x=>set.add(x)));
   return Array.from(set).sort();
 }
+function ownedPlatformsOf(g){
+  return (g.ownership||[]).map(o=>o.platform).filter(Boolean);
+}
+function ownedPlatformsInLibrary(){
+  const set = new Set();
+  state.games.forEach(g => ownedPlatformsOf(g).forEach(p=>set.add(p)));
+  return Array.from(set).sort();
+}
+function releasePlatformsOf(g){
+  return g.releasePlatforms || [];
+}
+function releasePlatformsInLibrary(){
+  const set = new Set();
+  state.games.forEach(g => { if(isFutureRelease(g)) releasePlatformsOf(g).forEach(p=>set.add(p)); });
+  return Array.from(set).sort();
+}
+// Scala 0–10 -> 5 stelline (stessa conversione usata da starString per le card).
+function starCountOf(g){
+  const r = Number(g.play && g.play.rating) || 0;
+  if(!r) return 0;
+  return Math.min(5, Math.max(0, Math.round(r/2)));
+}
+function hypeCountOf(g){
+  return Number(g.hype) || 0;
+}
+// Categoria "vera" di un gioco, indipendente dalla tab attiva (a differenza di
+// cardMode, pensata solo per decidere come disegnare la card nella tab
+// corrente). Serve al filtro "Stato" della tab Tutti.
+function categoryOf(g){
+  if(isFutureRelease(g)) return 'in-uscita';
+  if(g.isInfinite) return 'infinito';
+  if(g.status) return g.status;
+  if(g.wantToBuy) return 'da-comprare';
+  return 'da-giocare';
+}
 
 /* ============ Seed data ============ */
 function seedData(){
@@ -754,10 +798,17 @@ const PAGE_SIZE = 10;
 const state = {
   games: [],
   activeTab: 'in-corso',
-  filters: { search: '', platform: '', genre: '', sort: 'name-asc', buyPlayed: '' },
+  // Ogni scheda ha i propri filtri indipendenti (barra "filtri per scheda"):
+  // { search, sort, <chiavi dei gruppi definiti in groupsFor> }. Popolato in
+  // modo pigro da getTabFilters() la prima volta che una tab viene aperta.
+  filters: {},
   visibleCount: PAGE_SIZE,
   loaded: false
 };
+function getTabFilters(tabId){
+  if(!state.filters[tabId]) state.filters[tabId] = { search:'', sort:'name-asc' };
+  return state.filters[tabId];
+}
 let confirmDeleteId = null;
 let draft = null; // used while add/edit form is open
 
@@ -837,6 +888,13 @@ async function loadGames(){
       state.games = seedData();
       await migrateToSubcollection(state.games);
     }
+    // Alcuni campi devono essere sempre array (genres, ownership,
+    // releasePlatforms): se un documento li ha in un formato diverso
+    // (es. una singola stringa invece di un array, o mancanti del tutto)
+    // le funzioni di filtro/rendering vanno in crash e bloccano l'intera
+    // pagina (tab, filtri e griglia restano vuoti). Li normalizziamo qui,
+    // prima che qualunque render() li tocchi.
+    normalizeGames(state.games);
     // I giochi già salvati prima dell'introduzione del campo "hype" non ce
     // l'hanno: lo valorizziamo al minimo e salviamo la modifica, così la
     // migrazione avviene una volta sola.
@@ -848,6 +906,19 @@ async function loadGames(){
   }
   state.loaded = true;
   render();
+}
+
+// Garantisce che i campi che il resto del codice tratta sempre come array
+// (genres, ownership, releasePlatforms) lo siano davvero, e che title sia
+// sempre una stringa. Non scrive nulla su Firestore: corregge solo la
+// copia in memoria, cosi la UI non crasha più su un documento "storto".
+function normalizeGames(games){
+  games.forEach(g=>{
+    if(!Array.isArray(g.genres)) g.genres = g.genres ? [g.genres] : [];
+    if(!Array.isArray(g.ownership)) g.ownership = g.ownership ? [g.ownership] : [];
+    if(!Array.isArray(g.releasePlatforms)) g.releasePlatforms = g.releasePlatforms ? [g.releasePlatforms] : [];
+    if(typeof g.title !== 'string') g.title = g.title == null ? '' : String(g.title);
+  });
 }
 
 // Valorizza i campi introdotti dopo la creazione dei dati (hype) su tutti i
@@ -914,12 +985,132 @@ async function deleteGamePersisted(gameId){
 }
 
 /* ============ Derived data / filters ============ */
-function matchesFilters(g){
-  const s = state.filters.search.trim().toLowerCase();
+// ---- Definizione dei gruppi di filtro per ciascuna scheda ----
+// Ogni gruppo sa disegnarsi da solo (type/label/options) e sa dire se un gioco
+// lo soddisfa (match). "key" è la chiave usata dentro state.filters[tab].
+function chipsGroup(key,label,options,match,icon){ return {type:'chips', key, label, options, match, icon}; }
+function segGroup(key,label,options,def,match){ return {type:'seg', key, label, options, default:def, match}; }
+function selGroup(key,label,options,match){ return {type:'sel', key, label, options, match}; }
+function numGroup(key,label,placeholder,match){ return {type:'num', key, label, placeholder, match}; }
+
+function groupsFor(tabId){
+  const genreGroup = chipsGroup('genres','Genere', allGenresInLibrary(),
+    (g,sel)=> !sel.length || (g.genres||[]).some(x=>sel.includes(x)));
+  const platformGroup = (label)=> chipsGroup('platforms', label||'Piattaforma', allPlatformsInLibrary(),
+    (g,sel)=> !sel.length || allPlatformsOf(g).some(x=>sel.includes(x)));
+  const votoGroup = chipsGroup('voto','Voto', [1,2,3,4,5],
+    (g,sel)=> !sel.length || sel.map(Number).includes(starCountOf(g)), 'star');
+  const hypeGroup = chipsGroup('hype','Hype', [1,2,3,4,5],
+    (g,sel)=> !sel.length || sel.map(Number).includes(hypeCountOf(g)), 'flame');
+
+  if(tabId === 'finito'){
+    return [
+      genreGroup, platformGroup(), votoGroup,
+      numGroup('annoCompletamento','Anno completamento','Es. 2025',
+        (g,val)=> !String(val||'').trim() || ((g.play && g.play.endDate || '').slice(0,4) === String(val).trim())),
+      segGroup('stato','Stato', ['Tutti','Completati','Abbandonati'], 'Tutti', (g,val)=>{
+        if(val==='Abbandonati') return !!g.abandoned;
+        if(val==='Completati') return !g.abandoned;
+        return true;
+      })
+    ];
+  }
+  if(tabId === 'in-uscita'){
+    return [
+      genreGroup,
+      chipsGroup('releasePlatforms','Piattaforma di uscita', releasePlatformsInLibrary(),
+        (g,sel)=> !sel.length || releasePlatformsOf(g).some(x=>sel.includes(x))),
+      hypeGroup,
+      segGroup('prenotato','Prenotato', ['Tutti','Sì','No'], 'Tutti', (g,val)=>{
+        if(val==='Sì') return !!g.preorder;
+        if(val==='No') return !g.preorder;
+        return true;
+      }),
+      selGroup('entro','Entro', ['Qualsiasi data','Prossimi 30 giorni','Prossimi 90 giorni',"Quest'anno"], (g,val)=>{
+        if(val==='Qualsiasi data') return true;
+        if(!g.releaseDate) return false;
+        const rd = new Date(g.releaseDate);
+        if(isNaN(rd.getTime())) return false;
+        if(val==="Quest'anno") return rd.getFullYear() === new Date().getFullYear();
+        const days = val==='Prossimi 30 giorni' ? 30 : 90;
+        const diffDays = (rd - new Date()) / 86400000;
+        return diffDays >= 0 && diffDays <= days;
+      })
+    ];
+  }
+  if(tabId === 'da-comprare'){
+    return [
+      genreGroup, hypeGroup,
+      segGroup('stato','Stato', ['Tutti','Già giocati','Non ancora giocati'], 'Tutti', (g,val)=>{
+        if(val==='Tutti') return true;
+        const played = g.status === 'finito' || g.status === 'in-corso';
+        return val==='Già giocati' ? played : !played;
+      }),
+      selGroup('fasciaPrezzo','Fascia di prezzo', ['Qualsiasi prezzo','Sotto 20€','20–40€','40–60€','Oltre 60€'], (g,val)=>{
+        if(val==='Qualsiasi prezzo') return true;
+        const p = Number(g.wishlistPrice);
+        if(g.wishlistPrice==null || isNaN(p)) return false;
+        if(val==='Sotto 20€') return p < 20;
+        if(val==='20–40€') return p >= 20 && p < 40;
+        if(val==='40–60€') return p >= 40 && p < 60;
+        if(val==='Oltre 60€') return p >= 60;
+        return true;
+      })
+    ];
+  }
+  if(tabId === 'in-corso'){
+    return [
+      genreGroup, platformGroup(),
+      segGroup('accessType','Tipo accesso', ['Tutti','Posseduto','Abbonamento'], 'Tutti', (g,val)=>{
+        if(val==='Tutti') return true;
+        const t = g.play && g.play.accessType;
+        return val==='Posseduto' ? t==='owned' : (!!t && t!=='owned');
+      })
+    ];
+  }
+  if(tabId === 'infinito'){
+    return [genreGroup, platformGroup(), votoGroup];
+  }
+  if(tabId === 'da-giocare'){
+    return [
+      genreGroup,
+      chipsGroup('ownedPlatforms','Piattaforma posseduta', ownedPlatformsInLibrary(),
+        (g,sel)=> !sel.length || ownedPlatformsOf(g).some(x=>sel.includes(x))),
+      segGroup('formato','Formato', ['Tutti','Digitale','Fisico'], 'Tutti', (g,val)=>{
+        if(val==='Tutti') return true;
+        const fmt = val==='Digitale' ? 'digitale' : 'fisico';
+        return (g.ownership||[]).some(o=>o.format===fmt);
+      })
+    ];
+  }
+  // tutti
+  return [
+    genreGroup, platformGroup(),
+    segGroup('stato','Stato', ['Tutti','In corso','Finiti','Da giocare','In uscita','Da comprare','Infiniti'], 'Tutti', (g,val)=>{
+      if(val==='Tutti') return true;
+      const map = {'In corso':'in-corso','Finiti':'finito','Da giocare':'da-giocare','In uscita':'in-uscita','Da comprare':'da-comprare','Infiniti':'infinito'};
+      return categoryOf(g) === map[val];
+    })
+  ];
+}
+// Ordinamento disponibile per scheda: solo per nome su "In corso", per nome
+// o voto sulle altre.
+function sortOptionsFor(tabId){
+  const base = [
+    { value:'name-asc', label:'Nome (A - Z)' },
+    { value:'name-desc', label:'Nome (Z - A)' }
+  ];
+  if(tabId === 'in-corso') return base;
+  return base.concat([
+    { value:'rating-desc', label:'Voto (più alto)' },
+    { value:'rating-asc', label:'Voto (più basso)' }
+  ]);
+}
+function matchesTabFilters(g, tabId){
+  const tf = getTabFilters(tabId);
+  const s = (tf.search||'').trim().toLowerCase();
   if(s && !g.title.toLowerCase().includes(s)) return false;
-  if(state.filters.platform && !allPlatformsOf(g).includes(state.filters.platform)) return false;
-  if(state.filters.genre && !(g.genres||[]).includes(state.filters.genre)) return false;
-  return true;
+  return groupsFor(tabId).every(grp => grp.match(g, tf[grp.key]));
 }
 // Un gioco è "non ancora uscito" se ha una data di uscita valida e futura.
 // Le date sono stringhe 'YYYY-MM-DD' (dall'input type="date"): il confronto
@@ -931,24 +1122,6 @@ function isFutureRelease(g){
   const todayStr = new Date().toISOString().slice(0,10);
   return g.releaseDate > todayStr;
 }
-function releaseTimestamp(g){
-  if(!g.releaseDate) return null;
-  const t = new Date(g.releaseDate).getTime();
-  return isNaN(t) ? null : t;
-}
-// Ordina per vicinanza alla data odierna: per date future = le più imminenti
-// prima; per date passate (già uscite) = le più recenti prima. I giochi senza
-// data valida finiscono in fondo.
-function sortByReleaseProximity(list){
-  const now = Date.now();
-  return list.slice().sort((a,b)=>{
-    const ta = releaseTimestamp(a), tb = releaseTimestamp(b);
-    if(ta===null && tb===null) return 0;
-    if(ta===null) return 1;
-    if(tb===null) return -1;
-    return Math.abs(ta-now) - Math.abs(tb-now);
-  });
-}
 function formatDate(iso){
   if(!iso) return '—';
   const d = new Date(iso);
@@ -959,59 +1132,46 @@ function belongsToTab(g, tabId){
   if(tabId === 'tutti') return true;
   if(tabId === 'in-uscita') return isFutureRelease(g);
   if(isFutureRelease(g)) return false; // i giochi non ancora usciti vivono solo in "In uscita"
-  if(tabId === 'da-comprare'){
-    if(!g.wantToBuy) return false;
-    const played = g.status === 'finito' || g.status === 'in-corso';
-    if(state.filters.buyPlayed === 'played') return played;
-    if(state.filters.buyPlayed === 'not-played') return !played;
-    return true;
-  }
+  if(tabId === 'da-comprare') return !!g.wantToBuy;
   if(tabId === 'infinito') return !!g.isInfinite;
   if(g.isInfinite) return false; // infinite games live only in their own tab (+ Tutti / Da comprare)
   return g.status === tabId;
 }
-function sortByUserChoice(list){
-  const sort = state.filters.sort;
+function sortByUserChoice(list, tabId){
+  const sort = getTabFilters(tabId).sort;
   const sorted = list.slice();
-  if(sort === 'name-asc'){
-    sorted.sort((a,b)=> (a.title||'').localeCompare(b.title||'', 'it', { sensitivity:'base' }));
-  } else if(sort === 'name-desc'){
+  if(sort === 'name-desc'){
     sorted.sort((a,b)=> (b.title||'').localeCompare(a.title||'', 'it', { sensitivity:'base' }));
   } else if(sort === 'rating-desc'){
     sorted.sort((a,b)=> (Number(b.play && b.play.rating) || 0) - (Number(a.play && a.play.rating) || 0));
   } else if(sort === 'rating-asc'){
     sorted.sort((a,b)=> (Number(a.play && a.play.rating) || 0) - (Number(b.play && b.play.rating) || 0));
-  } else if(sort === 'start-desc' || sort === 'start-asc'){
-    // Le date sono in formato ISO (YYYY-MM-DD) quindi si confrontano come stringhe;
-    // i giochi senza data di inizio finiscono sempre in coda, a prescindere dal verso.
-    sorted.sort((a,b)=>{
-      const sa = (a.play && a.play.startDate) || '';
-      const sb = (b.play && b.play.startDate) || '';
-      if(!sa && !sb) return 0;
-      if(!sa) return 1;
-      if(!sb) return -1;
-      return sort === 'start-desc' ? sb.localeCompare(sa) : sa.localeCompare(sb);
-    });
+  } else {
+    sorted.sort((a,b)=> (a.title||'').localeCompare(b.title||'', 'it', { sensitivity:'base' })); // name-asc (default)
   }
   return sorted;
 }
 function getTabGames(tabId){
-  let list = state.games.filter(g => matchesFilters(g) && belongsToTab(g, tabId));
-  if(tabId === 'da-giocare' || tabId === 'in-uscita'){
-    list = sortByReleaseProximity(list);
-  } else {
-    list = sortByUserChoice(list);
-  }
-  return list;
+  const list = state.games.filter(g => belongsToTab(g, tabId) && matchesTabFilters(g, tabId));
+  return sortByUserChoice(list, tabId);
 }
 
 /* ============ Rendering ============ */
 function render(){
   if(!state.loaded) return;
-  renderStats();
-  renderTabs();
-  renderFilterOptions();
-  renderGrid();
+  try{
+    renderStats();
+    renderTabs();
+    renderFilterBar();
+    renderGrid();
+  }catch(e){
+    // Prima, un errore qui bloccava il rendering senza lasciare traccia
+    // visibile: tab, pannello filtri e griglia restavano vuoti e basta.
+    // Ora l'errore viene mostrato a schermo (e loggato in console) così
+    // si vede subito cosa si è rotto, invece di uno schermo cieco.
+    console.error('Errore di rendering', e);
+    showSaveError('Errore nel disegnare la pagina: ' + (e && e.message ? e.message : e));
+  }
 }
 
 function renderStats(){
@@ -1037,48 +1197,148 @@ function renderStats(){
 function renderTabs(){
   document.getElementById('tabs').innerHTML = TABS.map(t => {
     const count = getTabGames(t.id).length;
-    const active = state.activeTab === t.id ? ' active' : '';
-    return `<button class="${active}" data-tab="${t.id}">${t.label}<span class="count">${count}</span></button>`;
+    const active = state.activeTab === t.id ? ' on' : '';
+    return `<button type="button" class="tabbtn${active}" data-tab="${t.id}">${t.label}<span class="count">${count}</span></button>`;
   }).join('');
 }
 
-function renderFilterOptions(){
-  const platSel = document.getElementById('filter-platform');
-  const genSel = document.getElementById('filter-genre');
-  const curPlat = state.filters.platform, curGen = state.filters.genre;
-  platSel.innerHTML = '<option value="">Tutte le piattaforme</option>' + allPlatformsInLibrary().map(p=>`<option value="${esc(p)}" ${p===curPlat?'selected':''}>${esc(p)}</option>`).join('');
-  genSel.innerHTML = '<option value="">Tutti i generi</option>' + allGenresInLibrary().map(g=>`<option value="${esc(g)}" ${g===curGen?'selected':''}>${esc(g)}</option>`).join('');
+// Ricostruisce l'intera barra (ricerca, ordinamento, pannello filtri) per la
+// tab attualmente attiva. Va richiamata quando cambia la tab attiva o quando
+// i dati sottostanti (generi/piattaforme in libreria) possono essere
+// cambiati (es. dopo un salvataggio) — non durante la digitazione nei campi
+// del pannello, per non perdere focus/cursore (vedi renderChipsAndBadge).
+function renderFilterBar(){
+  const tabId = state.activeTab;
+  const tf = getTabFilters(tabId);
 
-  // Il menu di ordinamento cambia in base alla tab attiva: solo in "Finiti"
-  // ha senso ordinare per data di inizio partita.
-  const sortSel = document.getElementById('filter-sort');
-  const baseSortOptions = [
-    { value:'name-asc', label:'Nome (A - Z)' },
-    { value:'name-desc', label:'Nome (Z - A)' },
-    { value:'rating-desc', label:'Voto (Più alto)' },
-    { value:'rating-asc', label:'Voto (Più basso)' }
-  ];
-  const finitoSortOptions = [
-    { value:'start-desc', label:'Data inizio (più recente)' },
-    { value:'start-asc', label:'Data inizio (meno recente)' }
-  ];
-  const sortOptions = (state.activeTab === 'finito' || state.activeTab === 'infinito') ? baseSortOptions.concat(finitoSortOptions) : baseSortOptions;
-  const validValues = sortOptions.map(o=>o.value);
-  if(!validValues.includes(state.filters.sort)){
-    state.filters.sort = 'name-asc';
-  }
-  sortSel.innerHTML = sortOptions.map(o=>`<option value="${o.value}" ${o.value===state.filters.sort?'selected':''}>${o.label}</option>`).join('');
+  const searchInput = document.getElementById('filter-search');
+  if(document.activeElement !== searchInput){ searchInput.value = tf.search || ''; }
 
-  // Il filtro "già giocato / non giocato" ha senso solo nella tab "Da comprare".
-  const buyPlayedSel = document.getElementById('filter-buyplayed');
-  if(state.activeTab === 'da-comprare'){
-    buyPlayedSel.style.display = '';
-    buyPlayedSel.value = state.filters.buyPlayed || '';
-  } else {
-    buyPlayedSel.style.display = 'none';
+  const sortOptions = sortOptionsFor(tabId);
+  if(!sortOptions.some(o=>o.value===tf.sort)) tf.sort = sortOptions[0].value;
+  document.getElementById('filter-sort').innerHTML = sortOptions
+    .map(o=>`<option value="${o.value}" ${o.value===tf.sort?'selected':''}>${o.label}</option>`).join('');
+
+  renderPanel();
+}
+
+// Ridisegna il pannello filtri "a tendina" della tab attiva a partire dallo
+// stato salvato in state.filters[tab], inizializzando i valori mancanti al
+// primo utilizzo di ciascun gruppo.
+function renderPanel(){
+  const tabId = state.activeTab;
+  const tf = getTabFilters(tabId);
+  const groups = groupsFor(tabId);
+  const panel = document.getElementById('filter-panel');
+
+  panel.innerHTML = groups.map(g=>{
+    if(g.type === 'chips'){
+      if(tf[g.key] === undefined) tf[g.key] = [];
+      const selected = tf[g.key];
+      const opts = g.options.length ? g.options.map(o=>{
+        const val = String(o);
+        const on = selected.includes(val);
+        if(g.icon){
+          return `<button type="button" class="opt iconopt${on?' on':''}" data-value="${esc(val)}" aria-label="${esc(g.label)} ${esc(val)}"><i class="ti ti-${g.icon}" aria-hidden="true"></i></button>`;
+        }
+        return `<button type="button" class="opt${on?' on':''}" data-value="${esc(val)}">${esc(val)}</button>`;
+      }).join('') : `<p class="hint" style="margin:0;">Nessuna opzione disponibile ancora.</p>`;
+      return `<div class="group" data-kind="chips" data-key="${g.key}"><label>${esc(g.label)}</label><div class="optrow">${opts}</div></div>`;
+    }
+    if(g.type === 'seg'){
+      if(tf[g.key] === undefined) tf[g.key] = g.default;
+      return `<div class="group" data-kind="seg" data-key="${g.key}" data-default="${esc(g.default)}"><label>${esc(g.label)}</label><div class="optrow">${
+        g.options.map(o=>`<button type="button" class="opt${o===tf[g.key]?' on':''}" data-value="${esc(o)}">${esc(o)}</button>`).join('')
+      }</div></div>`;
+    }
+    if(g.type === 'num'){
+      if(tf[g.key] === undefined) tf[g.key] = '';
+      return `<div class="group" data-kind="num" data-key="${g.key}"><label>${esc(g.label)}</label><input type="number" inputmode="numeric" class="yearinput" placeholder="${esc(g.placeholder)}" value="${esc(tf[g.key])}"></div>`;
+    }
+    // sel
+    if(tf[g.key] === undefined) tf[g.key] = g.options[0];
+    return `<div class="group" data-kind="sel" data-key="${g.key}"><label>${esc(g.label)}</label><select class="groupsel">${
+      g.options.map(o=>`<option ${o===tf[g.key]?'selected':''}>${esc(o)}</option>`).join('')
+    }</select></div>`;
+  }).join('');
+
+  renderChipsAndBadge();
+}
+
+// Aggiorna SOLO il badge col conteggio e la fila di chip rimovibili, senza
+// toccare il resto del pannello: può essere chiamata ad ogni tasto premuto
+// (es. nel campo "Anno completamento") senza far perdere il focus all'input.
+function renderChipsAndBadge(){
+  const tabId = state.activeTab;
+  const tf = getTabFilters(tabId);
+  const groups = groupsFor(tabId);
+  let count = 0;
+  const chipItems = [];
+
+  groups.forEach(g=>{
+    if(g.type === 'chips'){
+      (tf[g.key] || []).forEach(val=>{
+        count++;
+        chipItems.push({ label:`${g.label}: ${val}`, reset:()=>{ tf[g.key] = tf[g.key].filter(v=>v!==val); renderPanel(); refreshTabsAndGrid(); } });
+      });
+    } else if(g.type === 'seg'){
+      if(tf[g.key] !== undefined && tf[g.key] !== g.default){
+        count++;
+        chipItems.push({ label:`${g.label}: ${tf[g.key]}`, reset:()=>{ tf[g.key] = g.default; renderPanel(); refreshTabsAndGrid(); } });
+      }
+    } else if(g.type === 'sel'){
+      if(tf[g.key] !== undefined && tf[g.key] !== g.options[0]){
+        count++;
+        chipItems.push({ label:`${g.label}: ${tf[g.key]}`, reset:()=>{ tf[g.key] = g.options[0]; renderPanel(); refreshTabsAndGrid(); } });
+      }
+    } else if(g.type === 'num'){
+      if((tf[g.key]||'').toString().trim() !== ''){
+        count++;
+        chipItems.push({ label:`${g.label}: ${tf[g.key]}`, reset:()=>{ tf[g.key] = ''; renderPanel(); refreshTabsAndGrid(); } });
+      }
+    }
+  });
+
+  const badge = document.getElementById('filter-badge');
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline-block' : 'none';
+
+  const chipsEl = document.getElementById('filter-chips');
+  chipsEl.innerHTML = '';
+  chipItems.forEach(ci=>{
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.innerHTML = `<span>${esc(ci.label)}</span><i class="ti ti-x" role="button" tabindex="0" aria-label="Rimuovi filtro"></i>`;
+    el.querySelector('i').addEventListener('click', ci.reset);
+    chipsEl.appendChild(el);
+  });
+  if(count > 0){
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'clear-filters';
+    clearBtn.textContent = 'Azzera tutti';
+    clearBtn.addEventListener('click', ()=>{
+      groups.forEach(g=>{
+        if(g.type === 'chips') tf[g.key] = [];
+        else if(g.type === 'seg') tf[g.key] = g.default;
+        else if(g.type === 'sel') tf[g.key] = g.options[0];
+        else if(g.type === 'num') tf[g.key] = '';
+      });
+      renderPanel();
+      refreshTabsAndGrid();
+    });
+    chipsEl.appendChild(clearBtn);
   }
 }
-  
+
+// Da richiamare dopo qualunque modifica ai filtri: azzera la paginazione e
+// ridisegna i conteggi delle tab + la griglia delle card.
+function refreshTabsAndGrid(){
+  state.visibleCount = PAGE_SIZE;
+  renderTabs();
+  renderGrid();
+}
+
 
 // Determina la "modalità" con cui disegnare la card: coincide con la tab
 // attiva, tranne che in "Tutti" dove va dedotta dal singolo gioco.
@@ -1688,37 +1948,60 @@ function bindGlobalEvents(){
     render();
   });
 
+  // Ricerca: filtra dal vivo la scheda attualmente attiva.
   document.getElementById('filter-search').addEventListener('input', e=>{
-    state.filters.search = e.target.value;
-    state.visibleCount = PAGE_SIZE;
-    renderTabs(); renderGrid();
+    getTabFilters(state.activeTab).search = e.target.value;
+    renderChipsAndBadge();
+    refreshTabsAndGrid();
   });
-  document.getElementById('filter-platform').addEventListener('change', e=>{
-    state.filters.platform = e.target.value;
+  // Ordinamento: non cambia il conteggio delle tab, quindi basta la griglia.
+  document.getElementById('filter-sort').addEventListener('change', e=>{
+    getTabFilters(state.activeTab).sort = e.target.value;
     state.visibleCount = PAGE_SIZE;
-    renderTabs(); renderGrid();
+    renderGrid();
   });
-  document.getElementById('filter-genre').addEventListener('change', e=>{
-    state.filters.genre = e.target.value;
-    state.visibleCount = PAGE_SIZE;
-    renderTabs(); renderGrid();
+  // Apre/chiude il pannello "a tendina" dei filtri della scheda attiva.
+  document.getElementById('filtBtn').addEventListener('click', ()=>{
+    document.getElementById('filter-panel').classList.toggle('open');
+    document.getElementById('filtBtn').classList.toggle('open');
   });
-  document.getElementById('clear-filters').addEventListener('click', () => {
-    state.filters = { search: '', platform: '', genre: '', sort: 'name-asc', buyPlayed: '' };
-    state.visibleCount = PAGE_SIZE;
-    document.getElementById('filter-search').value = '';
-    document.getElementById('filter-sort').value = 'name-asc';
-    render();
+  // Pannello filtri: click su un'opzione (chip singola/multipla o segmento).
+  document.getElementById('filter-panel').addEventListener('click', e=>{
+    const opt = e.target.closest('.opt');
+    if(!opt) return;
+    const groupEl = opt.closest('.group');
+    const key = groupEl.dataset.key;
+    const tf = getTabFilters(state.activeTab);
+    if(groupEl.dataset.kind === 'chips'){
+      opt.classList.toggle('on');
+      const val = opt.dataset.value;
+      const arr = tf[key] || (tf[key] = []);
+      const idx = arr.indexOf(val);
+      if(idx >= 0) arr.splice(idx,1); else arr.push(val);
+    } else if(groupEl.dataset.kind === 'seg'){
+      groupEl.querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
+      opt.classList.add('on');
+      tf[key] = opt.dataset.value;
+    }
+    renderChipsAndBadge();
+    refreshTabsAndGrid();
   });
-  document.getElementById('filter-sort').addEventListener('change', (e) => {
-  state.filters.sort = e.target.value;
-  state.visibleCount = PAGE_SIZE;
-  renderGrid();
+  // Pannello filtri: cambio di un menu a tendina (es. "Entro", "Fascia di prezzo").
+  document.getElementById('filter-panel').addEventListener('change', e=>{
+    if(!e.target.matches('select.groupsel')) return;
+    const groupEl = e.target.closest('.group');
+    getTabFilters(state.activeTab)[groupEl.dataset.key] = e.target.value;
+    renderChipsAndBadge();
+    refreshTabsAndGrid();
   });
-  document.getElementById('filter-buyplayed').addEventListener('change', (e) => {
-    state.filters.buyPlayed = e.target.value;
-    state.visibleCount = PAGE_SIZE;
-    renderTabs(); renderGrid();
+  // Pannello filtri: campo numerico libero (es. "Anno completamento") — non
+  // tocchiamo il pannello per non far perdere il focus mentre si digita.
+  document.getElementById('filter-panel').addEventListener('input', e=>{
+    if(!e.target.matches('input.yearinput')) return;
+    const groupEl = e.target.closest('.group');
+    getTabFilters(state.activeTab)[groupEl.dataset.key] = e.target.value;
+    renderChipsAndBadge();
+    refreshTabsAndGrid();
   });
 
   document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
