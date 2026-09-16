@@ -1110,7 +1110,19 @@ function matchesTabFilters(g, tabId){
   const tf = getTabFilters(tabId);
   const s = (tf.search||'').trim().toLowerCase();
   if(s && !g.title.toLowerCase().includes(s)) return false;
-  return groupsFor(tabId).every(grp => grp.match(g, tf[grp.key]));
+  // tf[grp.key] esiste solo dopo che il pannello filtri di QUESTA tab è
+  // stato disegnato almeno una volta (renderPanel lo inizializza lì).
+  // Ma renderTabs() calcola i conteggi per TUTTE le tab (anche quelle mai
+  // aperte in questa sessione, dato che i filtri non vengono persistiti),
+  // quindi qui serve comunque un default sensato per non leggere proprietà
+  // di "undefined" e mandare in crash l'intero render().
+  return groupsFor(tabId).every(grp => {
+    let val = tf[grp.key];
+    if(val === undefined){
+      val = grp.type === 'chips' ? [] : grp.type === 'seg' ? grp.default : grp.type === 'num' ? '' : grp.options[0];
+    }
+    return grp.match(g, val);
+  });
 }
 // Un gioco è "non ancora uscito" se ha una data di uscita valida e futura.
 // Le date sono stringhe 'YYYY-MM-DD' (dall'input type="date"): il confronto
