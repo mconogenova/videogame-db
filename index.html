@@ -1905,7 +1905,7 @@ function renderFormBody(){
       <div class="field">
         <label>Quanto interesse hai?</label>
         <select data-field="hype">
-          <option value="" ${!g.hype?'selected':''}>Non impostato</option>
+          <option value="" ${!g.hype?'selected':''}>ND</option>
           <option value="1" ${g.hype==1?'selected':''}>${HYPE_LABELS[1]}</option>
           <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
           <option value="3" ${g.hype==3?'selected':''}>${HYPE_LABELS[3]}</option>
@@ -1913,7 +1913,7 @@ function renderFormBody(){
           <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
         </select>
       </div>
-      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita", "Da comprare" e "Da giocare". Nei giochi da giocare indica la priorità: più fiammelle = da iniziare prima.</p>
+      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita", "Da comprare" e "Da giocare"</p>
     </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
