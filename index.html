@@ -39,6 +39,7 @@
     --sage-dim: #92A487;
     --slate: #3E5266;
     --slate-dim: #86A0B4;
+    --plum: #7A4C6B;
     --line: rgba(43,36,32,0.18);
     --border: rgba(43,36,32,0.18);
     --border-strong: rgba(43,36,32,0.4);
@@ -286,6 +287,8 @@
   .card.b-comprare:hover{ box-shadow: 6px 6px 0 rgba(147,115,46,0.3); }
   .card.b-in-uscita{ border-color: var(--ink-soft); box-shadow: 4px 4px 0 rgba(91,82,69,0.18); }
   .card.b-in-uscita:hover{ box-shadow: 6px 6px 0 rgba(91,82,69,0.3); }
+  .card.b-collezione{ border-color: var(--plum); box-shadow: 4px 4px 0 rgba(122,76,107,0.18); }
+  .card.b-collezione:hover{ box-shadow: 6px 6px 0 rgba(122,76,107,0.3); }
 
   .flames{ display:inline-flex; gap:2px; align-items:center; }
 
@@ -306,6 +309,7 @@
   .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
   .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
+  .badge.solo-collezione{ background: rgba(122,76,107,0.13); color: var(--plum); border-color: rgba(122,76,107,0.35); }
   .badge.prenotato{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
   .badge.abbandonato{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
 
@@ -659,7 +663,7 @@ function accessLabel(t){
 }
 function statusLabel(g){
   if(g.isInfinite) return 'Infinito';
-  return {'in-corso':'In corso','finito':'Finito','da-giocare':'Da giocare'}[g.status] || null;
+  return {'in-corso':'In corso','finito':'Finito','da-giocare':'Da giocare','solo-collezione':'Solo in collezione'}[g.status] || null;
 }
 function statusClass(g){
   if(g.isInfinite) return 'infinito';
@@ -733,6 +737,11 @@ function starCountOf(g){
 }
 function hypeCountOf(g){
   return Number(g.hype) || 0;
+}
+// Gioco che vive nella scheda "Da giocare" (stessa condizione di belongsToTab):
+// serve a decidere quando mostrare/chiedere l'Hype come priorità di gioco.
+function isDaGiocare(g){
+  return g.status === 'da-giocare' && !g.isInfinite && !isFutureRelease(g);
 }
 // Categoria "vera" di un gioco, indipendente dalla tab attiva (a differenza di
 // cardMode, pensata solo per decidere come disegnare la card nella tab
@@ -870,7 +879,8 @@ async function loadGames(){
       getDocs(gamesCollectionRef()),
       getDoc(libraryMetaRef())
     ]);
-    const alreadyMigrated = metaSnap.exists() && metaSnap.data().migrated === true;
+    const metaData = metaSnap.exists() ? metaSnap.data() : {};
+    const alreadyMigrated = metaData.migrated === true;
 
     if(!gamesSnap.empty || alreadyMigrated){
       // Sottocollezione già in uso: la usiamo così com'è, anche se vuota
@@ -895,10 +905,12 @@ async function loadGames(){
     // pagina (tab, filtri e griglia restano vuoti). Li normalizziamo qui,
     // prima che qualunque render() li tocchi.
     normalizeGames(state.games);
-    // I giochi già salvati prima dell'introduzione del campo "hype" non ce
-    // l'hanno: lo valorizziamo al minimo e salviamo la modifica, così la
-    // migrazione avviene una volta sola.
-    await migrateMissingFields(state.games);
+    // Allinea i dati esistenti ai campi introdotti col tempo (hype vuoto di
+    // default, ecc.). Non facciamo "await": le scritture su Firestore
+    // avvengono in background, così l'app si apre subito anche offline (con
+    // la cache persistente un commit offline resta in attesa della rete).
+    // I dati corretti sono già in memoria e vengono usati dal render().
+    migrateMissingFields(state.games, metaData);
   }catch(e){
     console.error('Errore di caricamento dati', e);
     state.games = [];
@@ -921,22 +933,48 @@ function normalizeGames(games){
   });
 }
 
-// Valorizza i campi introdotti dopo la creazione dei dati (hype) su tutti i
-// giochi che ne sono ancora privi, e salva solo quelli toccati.
-async function migrateMissingFields(games){
-  const toPersist = [];
+// Migrazione dei dati esistenti. Non tocca nessun campo oltre a "hype":
+// - Hype ora è VUOTO (null) di default, non più 1: un gioco senza hype
+//   impostato non deve sembrare "poco interessante", ma "non ancora valutato".
+//   Chi non ha il campo (undefined) viene portato a null.
+// - Una tantum (flag hypeDaGiocareReset sul documento di metadati): l'Hype non
+//   era modificabile né visibile per i giochi "Da giocare", quindi il valore 1
+//   che hanno adesso è quasi certamente il vecchio default automatico. Lo
+//   svuotiamo SOLO per i giochi "Da giocare" puri (non in lista desideri, non
+//   in uscita) con hype esattamente 1. Qualunque altro valore (2-5) e tutti gli
+//   altri giochi restano com'erano. Per saltare questo passaggio metti a false
+//   la costante qui sotto.
+const RESET_LEGACY_HYPE_ON_DA_GIOCARE = true;
+
+async function migrateMissingFields(games, meta){
+  const toPersist = new Map(); // id -> gioco (evita doppioni)
   games.forEach(g => {
-    let changed = false;
-    if(g.hype === undefined || g.hype === null){ g.hype = 1; changed = true; }
-    if(changed) toPersist.push(g);
+    if(g.hype === undefined){ g.hype = null; toPersist.set(g.id, g); }
   });
-  if(!toPersist.length) return;
+
+  const doLegacyReset = RESET_LEGACY_HYPE_ON_DA_GIOCARE && !(meta && meta.hypeDaGiocareReset === true);
+  if(doLegacyReset){
+    games.forEach(g => {
+      if(isDaGiocare(g) && !g.wantToBuy && Number(g.hype) === 1){
+        g.hype = null;
+        toPersist.set(g.id, g);
+      }
+    });
+  }
+
+  if(!toPersist.size && !doLegacyReset) return;
   try{
+    const list = Array.from(toPersist.values());
     const CHUNK = 450;
-    for(let i=0; i<toPersist.length; i+=CHUNK){
+    for(let i=0; i<list.length; i+=CHUNK){
       const batch = writeBatch(db);
-      toPersist.slice(i, i+CHUNK).forEach(g => batch.set(gameDocRef(g.id), g));
+      // merge:true + solo il campo hype: gli altri campi del documento non vengono riscritti.
+      list.slice(i, i+CHUNK).forEach(g => batch.set(gameDocRef(g.id), { hype: g.hype }, { merge: true }));
       await batch.commit();
+    }
+    // Segna la pulizia come fatta solo se le scritture sono andate a buon fine.
+    if(doLegacyReset){
+      await setDoc(libraryMetaRef(), { hypeDaGiocareReset: true }, { merge: true });
     }
   }catch(e){
     console.error('Errore di migrazione del campo hype', e);
@@ -1073,7 +1111,7 @@ function groupsFor(tabId){
   }
   if(tabId === 'da-giocare'){
     return [
-      genreGroup,
+      genreGroup, hypeGroup,
       chipsGroup('ownedPlatforms','Piattaforma posseduta', ownedPlatformsInLibrary(),
         (g,sel)=> !sel.length || ownedPlatformsOf(g).some(x=>sel.includes(x))),
       segGroup('formato','Formato', ['Tutti','Digitale','Fisico'], 'Tutti', (g,val)=>{
@@ -1086,9 +1124,9 @@ function groupsFor(tabId){
   // tutti
   return [
     genreGroup, platformGroup(),
-    segGroup('stato','Stato', ['Tutti','In corso','Finiti','Da giocare','In uscita','Da comprare','Infiniti'], 'Tutti', (g,val)=>{
+    segGroup('stato','Stato', ['Tutti','In corso','Finiti','Da giocare','In uscita','Da comprare','Infiniti','Solo in collezione'], 'Tutti', (g,val)=>{
       if(val==='Tutti') return true;
-      const map = {'In corso':'in-corso','Finiti':'finito','Da giocare':'da-giocare','In uscita':'in-uscita','Da comprare':'da-comprare','Infiniti':'infinito'};
+      const map = {'In corso':'in-corso','Finiti':'finito','Da giocare':'da-giocare','In uscita':'in-uscita','Da comprare':'da-comprare','Infiniti':'infinito','Solo in collezione':'solo-collezione'};
       return categoryOf(g) === map[val];
     })
   ];
@@ -1104,6 +1142,13 @@ function sortOptionsFor(tabId){
     { value:'rating-desc', label:'Voto (più alto)' },
     { value:'rating-asc', label:'Voto (più basso)' }
   ]);
+  // In "Da giocare" l'Hype è la priorità di gioco: permette di ordinare per quella.
+  if(tabId === 'da-giocare'){
+    options.push(
+      { value:'hype-desc', label:'Hype (più alto)' },
+      { value:'hype-asc', label:'Hype (più basso)' }
+    );
+  }
   options.push(
     { value:'release-desc', label:'Data uscita (più recente)' },
     { value:'release-asc', label:'Data uscita (meno recente)' },
@@ -1185,6 +1230,19 @@ function sortByUserChoice(list, tabId){
     sorted.sort((a,b)=> (Number(b.play && b.play.rating) || 0) - (Number(a.play && a.play.rating) || 0));
   } else if(sort === 'rating-asc'){
     sorted.sort((a,b)=> (Number(a.play && a.play.rating) || 0) - (Number(b.play && b.play.rating) || 0));
+  } else if(sort === 'hype-desc' || sort === 'hype-asc'){
+    // Chi non ha hype impostato finisce sempre in fondo, in entrambi i versi;
+    // a parità di hype, ordine alfabetico.
+    const dir = sort === 'hype-desc' ? -1 : 1;
+    const byTitle = (a,b)=> (a.title||'').localeCompare(b.title||'', 'it', { sensitivity:'base' });
+    sorted.sort((a,b)=>{
+      const ha = hypeCountOf(a), hb = hypeCountOf(b);
+      if(!ha && !hb) return byTitle(a,b);
+      if(!ha) return 1;
+      if(!hb) return -1;
+      if(ha !== hb) return (ha - hb) * dir;
+      return byTitle(a,b);
+    });
   } else if(sort === 'release-desc'){
     sorted.sort(byDateField('releaseDate','desc'));
   } else if(sort === 'release-asc'){
@@ -1404,7 +1462,8 @@ function cardMode(g){
 }
 const BORDER_CLASS_BY_MODE = {
   'in-corso':'b-in-corso', 'infinito':'b-infinito', 'finito':'b-finito',
-  'da-giocare':'b-da-giocare', 'in-uscita':'b-in-uscita', 'da-comprare':'b-comprare'
+  'da-giocare':'b-da-giocare', 'in-uscita':'b-in-uscita', 'da-comprare':'b-comprare',
+  'solo-collezione':'b-collezione'
 };
 
 function cardTemplate(g){
@@ -1437,6 +1496,14 @@ function cardTemplate(g){
     rows.push(`<div class="row"><span>Hype</span>${flameString(g.hype)}</div>`);
 
   } else if(mode === 'da-giocare'){
+    const ownedPlatforms = (g.ownership||[]).map(o=>o.platform).filter(Boolean);
+    rows.push(`<div class="row"><span>Posseduto su</span><span>${esc(ownedPlatforms.join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
+    rows.push(`<div class="row"><span>Hype</span>${flameString(g.hype)}</div>`);
+
+  } else if(mode === 'solo-collezione'){
+    // Nessuna scheda dedicata: compare solo in "Tutti".
     const ownedPlatforms = (g.ownership||[]).map(o=>o.platform).filter(Boolean);
     rows.push(`<div class="row"><span>Posseduto su</span><span>${esc(ownedPlatforms.join(', ')) || '—'}</span></div>`);
     rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
@@ -1593,6 +1660,12 @@ function openDetail(id){
         <div class="detail-row"><span>Hype</span><span>${flameString(g.hype)}</span></div>
       </div>` : ''}
 
+      ${isDaGiocare(g) && !g.wantToBuy ? `
+      <div class="detail-section">
+        <h4>Priorità di gioco</h4>
+        <div class="detail-row"><span>Hype</span><span>${flameString(g.hype)}</span></div>
+      </div>` : ''}
+
       ${isFutureRelease(g) ? `
       <div class="detail-section">
         <h4>In arrivo</h4>
@@ -1635,7 +1708,7 @@ function blankGame(){
   return {
     id: uid(), title:'', genres:[], releaseDate:'', isInfinite:false,
     status:'da-giocare', wantToBuy:false, wishlistPrice:null, abandoned:false,
-    preorder:false, preorderPrice:null, releasePlatforms:[], hype:1,
+    preorder:false, preorderPrice:null, releasePlatforms:[], hype:null,
     play:{ platform:'', accessType:'', startDate:'', endDate:'', hours:0, rating:0, review:'' },
     ownership:[], notes:''
   };
@@ -1736,9 +1809,11 @@ function renderFormBody(){
           <option value="da-giocare" ${g.status==='da-giocare'?'selected':''}>Da giocare (lo possiedo, non iniziato)</option>
           <option value="in-corso" ${g.status==='in-corso'?'selected':''}>In corso</option>
           <option value="finito" ${g.status==='finito'?'selected':''}>Finito</option>
+          <option value="solo-collezione" ${g.status==='solo-collezione'?'selected':''}>Solo in collezione (lo possiedo, ma non lo giocherò)</option>
           <option value="" ${!g.status?'selected':''}>Non iniziato / solo in lista desideri</option>
         </select>
       </div>
+      ${g.status === 'solo-collezione' ? `<p class="hint">Non ha una scheda dedicata: lo trovi solo in "Tutti".</p>` : ''}
       ${g.status === 'finito' ? `
       <div class="checkbox-row" style="margin-top:8px;">
         <input type="checkbox" id="f-abandoned" data-field="abandoned" ${g.abandoned?'checked':''}>
@@ -1812,20 +1887,21 @@ function renderFormBody(){
       </div>` : ''}
     </fieldset>
 
-    ${(g._isNew || isFutureRelease(g) || g.wantToBuy) ? `
+    ${(g._isNew || isFutureRelease(g) || g.wantToBuy || isDaGiocare(g)) ? `
     <fieldset>
       <legend>Hype</legend>
       <div class="field">
         <label>Quanto interesse hai?</label>
         <select data-field="hype">
-          <option value="1" ${(!g.hype || g.hype==1)?'selected':''}>${HYPE_LABELS[1]}</option>
+          <option value="" ${!g.hype?'selected':''}>Non impostato</option>
+          <option value="1" ${g.hype==1?'selected':''}>${HYPE_LABELS[1]}</option>
           <option value="2" ${g.hype==2?'selected':''}>${HYPE_LABELS[2]}</option>
           <option value="3" ${g.hype==3?'selected':''}>${HYPE_LABELS[3]}</option>
           <option value="4" ${g.hype==4?'selected':''}>${HYPE_LABELS[4]}</option>
           <option value="5" ${g.hype==5?'selected':''}>${HYPE_LABELS[5]}</option>
         </select>
       </div>
-      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita" e "Da comprare".</p>
+      <p class="hint" style="margin-bottom:0;">Verrà mostrato come fiammelle nelle card "In uscita", "Da comprare" e "Da giocare". Nei giochi da giocare indica la priorità: più fiammelle = da iniziare prima.</p>
     </fieldset>` : ''}
 
     ${(g._isNew || isFutureRelease(g)) ? `
@@ -1893,7 +1969,7 @@ function onFormFieldChange(e){
   let val;
   if(t.type === 'checkbox') val = t.checked;
   else if(t.type === 'number') val = t.value==='' ? 0 : Number(t.value);
-  else if(field === 'hype') val = Number(t.value);
+  else if(field === 'hype') val = t.value === '' ? null : Number(t.value);
   else val = t.value;
 
   setPath(draft, field, val);
