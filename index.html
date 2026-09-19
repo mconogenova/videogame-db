@@ -1159,7 +1159,7 @@ function sortOptionsFor(tabId){
   );
   return options;
 }
-function matchesTabFilters(g, tabId){
+function matchesTabFilters(g, tabId, groups){
   const tf = getTabFilters(tabId);
   const s = (tf.search||'').trim().toLowerCase();
   if(s && !g.title.toLowerCase().includes(s)) return false;
@@ -1169,7 +1169,10 @@ function matchesTabFilters(g, tabId){
   // aperte in questa sessione, dato che i filtri non vengono persistiti),
   // quindi qui serve comunque un default sensato per non leggere proprietà
   // di "undefined" e mandare in crash l'intero render().
-  return groupsFor(tabId).every(grp => {
+  // "groups" può arrivare già calcolato dal chiamante (vedi getFilteredTabGames):
+  // evita di rifare groupsFor(tabId) — che scandisce l'intera libreria per
+  // generi/piattaforme — una volta per CIASCUN gioco filtrato.
+  return (groups || groupsFor(tabId)).every(grp => {
     let val = tf[grp.key];
     if(val === undefined){
       val = grp.type === 'chips' ? [] : grp.type === 'seg' ? grp.default : grp.type === 'num' ? '' : grp.options[0];
@@ -1260,9 +1263,16 @@ function sortByUserChoice(list, tabId){
   }
   return sorted;
 }
+// Solo filtro (niente ordinamento): usato per i conteggi nelle tab, dove
+// l'ordine dei risultati non serve, e come base di getTabGames qui sotto.
+// groupsFor(tabId) viene calcolato una sola volta per l'intera chiamata,
+// invece che una volta per ogni gioco (vedi matchesTabFilters).
+function getFilteredTabGames(tabId){
+  const groups = groupsFor(tabId);
+  return state.games.filter(g => belongsToTab(g, tabId) && matchesTabFilters(g, tabId, groups));
+}
 function getTabGames(tabId){
-  const list = state.games.filter(g => belongsToTab(g, tabId) && matchesTabFilters(g, tabId));
-  return sortByUserChoice(list, tabId);
+  return sortByUserChoice(getFilteredTabGames(tabId), tabId);
 }
 
 /* ============ Rendering ============ */
@@ -1305,7 +1315,7 @@ function renderStats(){
 
 function renderTabs(){
   document.getElementById('tabs').innerHTML = TABS.map(t => {
-    const count = getTabGames(t.id).length;
+    const count = getFilteredTabGames(t.id).length;
     const active = state.activeTab === t.id ? ' on' : '';
     return `<button type="button" class="tabbtn${active}" data-tab="${t.id}">${t.label}<span class="count">${count}</span></button>`;
   }).join('');
@@ -1371,16 +1381,18 @@ function renderPanel(){
     }</select></div>`;
   }).join('');
 
-  renderChipsAndBadge();
+  renderChipsAndBadge(groups);
 }
 
 // Aggiorna SOLO il badge col conteggio e la fila di chip rimovibili, senza
 // toccare il resto del pannello: può essere chiamata ad ogni tasto premuto
 // (es. nel campo "Anno completamento") senza far perdere il focus all'input.
-function renderChipsAndBadge(){
+function renderChipsAndBadge(groups){
   const tabId = state.activeTab;
   const tf = getTabFilters(tabId);
-  const groups = groupsFor(tabId);
+  // Se il chiamante (renderPanel) ha già i gruppi pronti per questa tab, li
+  // riusiamo invece di rifare da capo la scansione della libreria.
+  if(!groups) groups = groupsFor(tabId);
   let count = 0;
   const chipItems = [];
 
