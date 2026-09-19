@@ -1818,11 +1818,11 @@ function renderFormBody(){
       <div class="field">
         <label>A che punto sei?</label>
         <select data-field="status">
-          <option value="da-giocare" ${g.status==='da-giocare'?'selected':''}>Da giocare (lo possiedo, non iniziato)</option>
+          <option value="solo-collezione" ${g.status==='solo-collezione'?'selected':''}>Solo in collezione (Posseduto, ma non lo giocherò)</option>        
+          <option value="da-giocare" ${g.status==='da-giocare'?'selected':''}>Da giocare (Posseduto, ma non ancora iniziato)</option>          
           <option value="in-corso" ${g.status==='in-corso'?'selected':''}>In corso</option>
           <option value="finito" ${g.status==='finito'?'selected':''}>Finito</option>
-          <option value="solo-collezione" ${g.status==='solo-collezione'?'selected':''}>Solo in collezione (lo possiedo, ma non lo giocherò)</option>
-          <option value="" ${!g.status?'selected':''}>Non iniziato / solo in lista desideri</option>
+          <option value="" ${!g.status?'selected':''}>Lista desideri</option>
         </select>
       </div>
       ${g.status === 'solo-collezione' ? `<p class="hint">Non ha una scheda dedicata: lo trovi solo in "Tutti".</p>` : ''}
