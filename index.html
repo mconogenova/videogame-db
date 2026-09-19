@@ -40,6 +40,15 @@
     --slate: #3E5266;
     --slate-dim: #86A0B4;
     --plum: #7A4C6B;
+    /* Nuovi colori categorie. Il colore "base" è usato per cornice card e
+       riquadro del tag; la variante "-ink" è più scura e serve solo per il
+       testo del tag, così resta leggibile (contrasto >= 4.5:1). */
+    --blue: #267BF1;
+    --blue-ink: #0D5AC5;
+    --green: #1B904E;
+    --green-ink: #146B3A;
+    --peach: #F4A062;
+    --peach-ink: #A24107;
     --line: rgba(43,36,32,0.18);
     --border: rgba(43,36,32,0.18);
     --border-strong: rgba(43,36,32,0.4);
@@ -277,16 +286,18 @@
   .card:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(43,36,32,0.22); }
 
   /* Cornice colorata in base allo stato della card (coerente coi badge) */
-  .card.b-in-corso, .card.b-infinito{ border-color: var(--stamp); box-shadow: 4px 4px 0 rgba(156,59,46,0.18); }
-  .card.b-in-corso:hover, .card.b-infinito:hover{ box-shadow: 6px 6px 0 rgba(156,59,46,0.3); }
-  .card.b-finito{ border-color: var(--sage); box-shadow: 4px 4px 0 rgba(82,101,74,0.18); }
-  .card.b-finito:hover{ box-shadow: 6px 6px 0 rgba(82,101,74,0.3); }
+  .card.b-in-corso{ border-color: var(--stamp); box-shadow: 4px 4px 0 rgba(156,59,46,0.18); }
+  .card.b-in-corso:hover{ box-shadow: 6px 6px 0 rgba(156,59,46,0.3); }
+  .card.b-infinito{ border-color: var(--blue); box-shadow: 4px 4px 0 rgba(38,123,241,0.18); }
+  .card.b-infinito:hover{ box-shadow: 6px 6px 0 rgba(38,123,241,0.3); }
+  .card.b-finito{ border-color: var(--green); box-shadow: 4px 4px 0 rgba(27,144,78,0.18); }
+  .card.b-finito:hover{ box-shadow: 6px 6px 0 rgba(27,144,78,0.3); }
   .card.b-da-giocare{ border-color: var(--slate); box-shadow: 4px 4px 0 rgba(62,82,102,0.18); }
   .card.b-da-giocare:hover{ box-shadow: 6px 6px 0 rgba(62,82,102,0.3); }
   .card.b-comprare{ border-color: var(--brass); box-shadow: 4px 4px 0 rgba(147,115,46,0.18); }
   .card.b-comprare:hover{ box-shadow: 6px 6px 0 rgba(147,115,46,0.3); }
-  .card.b-in-uscita{ border-color: var(--ink-soft); box-shadow: 4px 4px 0 rgba(91,82,69,0.18); }
-  .card.b-in-uscita:hover{ box-shadow: 6px 6px 0 rgba(91,82,69,0.3); }
+  .card.b-in-uscita{ border-color: var(--peach); box-shadow: 4px 4px 0 rgba(244,160,98,0.28); }
+  .card.b-in-uscita:hover{ box-shadow: 6px 6px 0 rgba(244,160,98,0.42); }
   .card.b-collezione{ border-color: var(--plum); box-shadow: 4px 4px 0 rgba(122,76,107,0.18); }
   .card.b-collezione:hover{ box-shadow: 6px 6px 0 rgba(122,76,107,0.3); }
 
@@ -304,11 +315,11 @@
     flex-shrink: 0;
   }
   .badge.in-corso{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
-  .badge.finito{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
+  .badge.finito{ background: rgba(27,144,78,0.13); color: var(--green-ink); border-color: rgba(27,144,78,0.45); }
   .badge.da-giocare{ background: rgba(62,82,102,0.13); color: var(--slate); border-color: rgba(62,82,102,0.35); }
-  .badge.infinito{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
+  .badge.infinito{ background: rgba(38,123,241,0.12); color: var(--blue-ink); border-color: rgba(38,123,241,0.45); }
   .badge.comprare{ background: rgba(147,115,46,0.16); color: var(--brass); border-color: rgba(147,115,46,0.4); }
-  .badge.in-uscita{ background: rgba(43,36,32,0.07); color: var(--ink-soft); border-color: var(--line); }
+  .badge.in-uscita{ background: rgba(244,160,98,0.2); color: var(--peach-ink); border-color: rgba(244,160,98,0.7); }
   .badge.solo-collezione{ background: rgba(122,76,107,0.13); color: var(--plum); border-color: rgba(122,76,107,0.35); }
   .badge.prenotato{ background: rgba(82,101,74,0.14); color: var(--sage); border-color: rgba(82,101,74,0.35); }
   .badge.abbandonato{ background: rgba(156,59,46,0.12); color: var(--stamp); border-color: rgba(156,59,46,0.35); }
@@ -1141,23 +1152,23 @@ function sortOptionsFor(tabId){
     { value:'name-desc', label:'Nome (Z - A)' }
   ];
   const options = tabId === 'in-corso' ? base.slice() : base.concat([
-    { value:'rating-desc', label:'Voto (più alto)' },
-    { value:'rating-asc', label:'Voto (più basso)' }
+    { value:'rating-desc', label:'Voto (Decrescente)' },
+    { value:'rating-asc', label:'Voto (Crescente)' }
   ]);
   // In "Da giocare" l'Hype è la priorità di gioco: permette di ordinare per quella.
   if(tabId === 'da-giocare'){
     options.push(
-      { value:'hype-desc', label:'Hype (più alto)' },
-      { value:'hype-asc', label:'Hype (più basso)' }
+      { value:'hype-desc', label:'Hype (Decrescente)' },
+      { value:'hype-asc', label:'Hype (Crescente)' }
     );
   }
   options.push(
-    { value:'release-desc', label:'Data uscita (più recente)' },
-    { value:'release-asc', label:'Data uscita (meno recente)' },
-    { value:'start-desc', label:'Data inizio (più recente)' },
-    { value:'start-asc', label:'Data inizio (meno recente)' },
-    { value:'end-desc', label:'Data fine (più recente)' },
-    { value:'end-asc', label:'Data fine (meno recente)' }
+    { value:'release-desc', label:'Data uscita (Decrescente)' },
+    { value:'release-asc', label:'Data uscita (Crescente)' },
+    { value:'start-desc', label:'Data inizio (Decrescente)' },
+    { value:'start-asc', label:'Data inizio (Crescente)' },
+    { value:'end-desc', label:'Data fine (Decrescente)' },
+    { value:'end-asc', label:'Data fine (Crescente)' }
   );
   return options;
 }
@@ -1538,6 +1549,7 @@ function cardTemplate(g){
       : '—';
     rows.push(`<div class="row"><span>Giocato su</span><span>${playedLine}</span></div>`);
     rows.push(`<div class="row"><span>Genere</span><span>${esc((g.genres||[]).join(', ')) || '—'}</span></div>`);
+    rows.push(`<div class="row"><span>Uscita</span><span>${formatDate(g.releaseDate)}</span></div>`);
     rows.push(`<div class="row"><span>Periodo</span><span>${formatDate(g.play && g.play.startDate)} – ${formatDate(g.play && g.play.endDate)}</span></div>`);
     rows.push(`<div class="row"><span>Ore</span><span>${(g.play && g.play.hours) ? g.play.hours + ' h' : '—'}</span></div>`);
     rows.push(`<div class="row"><span>Voto</span><span class="stars">${starString(g.play && g.play.rating)}</span></div>`);
