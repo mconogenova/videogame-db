@@ -1156,7 +1156,7 @@ function sortOptionsFor(tabId){
     { value:'rating-asc', label:'Voto (Crescente)' }
   ]);
   // In "Da giocare" l'Hype è la priorità di gioco: permette di ordinare per quella.
-  if(tabId === 'da-giocare'){
+  if(tabId === 'da-giocare' or tabId === 'da-comprare'){
     options.push(
       { value:'hype-desc', label:'Hype (Decrescente)' },
       { value:'hype-asc', label:'Hype (Crescente)' }
